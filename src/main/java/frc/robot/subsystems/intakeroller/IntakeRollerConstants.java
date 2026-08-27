@@ -13,7 +13,7 @@ public class IntakeRollerConstants {
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity INTAKE_SPEED = RPM.of(120);
-        public static final AngularVelocity OUTTAKE_SPEED = RPM.of(120);
+        public static final AngularVelocity OUTTAKE_SPEED = RPM.of(-120);
         // REAL PID
         public static final float REAL_KP = 50;
         public static final float REAL_KI = 0;
