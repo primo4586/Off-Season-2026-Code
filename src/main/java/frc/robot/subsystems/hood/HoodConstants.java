@@ -39,8 +39,8 @@ public class HoodConstants {
         public static final double REAL_KV = 0;
 
         // SIM PID
-        public static final double SIM_KP = 35;
-        public static final double SIM_KI = 0.1;
+        public static final double SIM_KP = 10;
+        public static final double SIM_KI = 0;
         public static final double SIM_KD = 0;
         // SIM FEEDFOWARD
         public static final double SIM_KS = 0;
@@ -51,7 +51,7 @@ public class HoodConstants {
         public static final boolean INVERTED = false;
         public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
         public static final int MOTOR_ID = 0;
-        public static final Distance LENGTH_OF_SIM_ARM = Millimeter.of(0.3);
+        public static final Distance LENGTH_OF_SIM_ARM = Millimeter.of(20);
         public static final Angle STARTING_POSITION = Degrees.of(0);
         public static final Angle HIGH_LIMIT = Degrees.of(100);
         public static final Angle LOW_LIMIT = Degrees.of(0);
@@ -65,5 +65,6 @@ public class HoodConstants {
     //general
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final TelemetryVerbosity MECHANISM_VERBOSITY = TelemetryVerbosity.HIGH;
+        public static final Angle TOLERANCE = Degrees.of(0);
 
 }

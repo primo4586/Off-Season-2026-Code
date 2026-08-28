@@ -34,7 +34,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    hood.setDefaultCommand(hood.setAngle(Degrees.of(0)));
+    hood.setDefaultCommand(hood.runTo(Degrees.of(0)));
   }
 
   /**
