@@ -10,6 +10,8 @@ import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -32,6 +34,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    
   }
 
   /**
@@ -51,8 +54,9 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
     m_driverController.b().whileTrue(intakeArm.OpenIntake());
-    m_driverController.a().whileTrue(intakeArm.set(1));
+    m_driverController.a().whileTrue(intakeArm.CloseIntake());
     m_driverController.x().whileTrue(intakeArm.OpenAndCloseIntake());
+     m_driverController.x().onFalse(intakeArm.OpenIntake());
   
   }
 

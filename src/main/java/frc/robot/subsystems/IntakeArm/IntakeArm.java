@@ -62,25 +62,28 @@ public class IntakeArm extends SubsystemBase {
 
     // Arm Mechanism
     private Arm arm = new Arm(armCfg, motor);
+    
 
     public Command SetIntakeToPositon(Angle angle) {
-        return arm.runTo(angle, ARM_TOLERANCE);
+        return arm.runTo(angle,ARM_TOLERANCE);
 
     }
 
     public Command OpenIntake() {
-        return SetIntakeToPositon(MIN_ANGLE_DEGREES);
-    }
-
-    public Command CloseIntake() {
+        
         return SetIntakeToPositon(MAX_ANGLE_DEGREES);
     }
 
+    public Command CloseIntake() {
+       
+        return SetIntakeToPositon(MIN_ANGLE_DEGREES);
+    }
+
     public Command OpenAndCloseIntake() {
-        return Commands.sequence(
-                Commands.repeatingSequence(CloseIntake(), Commands.waitTime(Seconds.of(0.5)),
-                        SetIntakeToPositon(MID_POINT), Commands.waitTime(Seconds.of(0.5))),
-                OpenIntake());
+       
+        return Commands.repeatingSequence(arm.run(MIN_ANGLE_DEGREES).withTimeout(0.2), Commands.waitTime(Seconds.of(0.2)),
+                        arm.run(MID_POINT).withTimeout(Seconds.of(0.2)), Commands.waitTime(Seconds.of(0.2)));
+                
     }
      /**
    * Move the arm up and down.
