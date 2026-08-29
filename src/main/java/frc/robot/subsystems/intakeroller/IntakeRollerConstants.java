@@ -10,6 +10,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
 public class IntakeRollerConstants {
+    //phisycal info
+        public static final int MOTOR_ID = 0;
+        public static final double GEARING = 3;
+        public static final boolean INVERTED = false;
+        public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity INTAKE_SPEED = RPM.of(120);
@@ -31,14 +36,9 @@ public class IntakeRollerConstants {
         public static final float SIM_KS = 0;
         public static final float SIM_KV = 0;
         public static final float SIM_KA = 0;
-    //phisycal info
-        public static final double GEARING = 3;
-        public static final boolean INVERTED = false;
-        public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
-        public static final int MOTOR_ID = 0;
     //limits
-        public static Current STATOR_LIMIT = Amps.of(100);
-        public static Current SUPPLY_LIMIT = Amps.of(50);
+        public static Current STATOR_LIMIT = Amps.of(120);
+        public static Current SUPPLY_LIMIT = Amps.of(60);
 
     //general
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
