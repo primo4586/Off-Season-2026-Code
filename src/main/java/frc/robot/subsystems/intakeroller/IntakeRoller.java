@@ -49,19 +49,32 @@ public class IntakeRoller extends SubsystemBase {
     public AngularVelocity getVelocity() {
         return intakeRoller.getSpeed();
     }
-
+    
     /**
-     * Runs the shooter at the given velocity.
-     *
-     * @param speed Speed to set.
-     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+     * Activates Intake Roller with constant INTAKE_SPEED
+     * in order to force balls into the robot
+     * 
+     * @return Command
      */
     public Command intake() {
         return intakeRoller.run(INTAKE_SPEED);
     }
+
+    /**
+     * Activates Intake Roller with constant OUTTAKE_SPEED
+     * in order to remove jammed balls from robot
+     * 
+     * @return Command
+     */
     public Command outtake() {
         return intakeRoller.run(OUTTAKE_SPEED);
     }
+
+    /**
+     * sets intakeroller speed to dutyCycle
+     * @param dutyCycle the speed to run the intakeroller at
+     * @return Command
+     */
   public Command set(double dutyCycle)
   {
     return intakeRoller.set(dutyCycle);
