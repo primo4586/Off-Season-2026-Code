@@ -20,22 +20,22 @@ public class IntakeRollerConstants {
         public static final AngularVelocity INTAKE_SPEED = RPM.of(120);
         public static final AngularVelocity OUTTAKE_SPEED = RPM.of(-120);
         // REAL PID
-        public static final float REAL_KP = 50;
-        public static final float REAL_KI = 0;
-        public static final float REAL_KD = 0;
+        public static final double REAL_KP = 50;
+        public static final double REAL_KI = 0;
+        public static final double REAL_KD = 0;
         // REAL FEEDFOWARD
-        public static final float REAL_KS = 0;
-        public static final float REAL_KV = 0;
-        public static final float REAL_KA = 0;
+        public static final double REAL_KS = 0;
+        public static final double REAL_KV = 0;
+        public static final double REAL_KA = 0;
 
         // SIM PID
-        public static final float SIM_KP = 1;
-        public static final float SIM_KI = 0;
-        public static final float SIM_KD = 0;
+        public static final double SIM_KP = 1;
+        public static final double SIM_KI = 0;
+        public static final double SIM_KD = 0;
         // SIM FEEDFOWARD
-        public static final float SIM_KS = 0;
-        public static final float SIM_KV = 0;
-        public static final float SIM_KA = 0;
+        public static final double SIM_KS = 0;
+        public static final double SIM_KV = 0;
+        public static final double SIM_KA = 0;
     //limits
         public static Current STATOR_LIMIT = Amps.of(120);
         public static Current SUPPLY_LIMIT = Amps.of(60);
