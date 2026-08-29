@@ -10,13 +10,9 @@ import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Millimeter;
-import static edu.wpi.first.units.Units.RPM;
 import static frc.robot.subsystems.intakeroller.IntakeRollerConstants.*;
 
 import com.ctre.phoenix6.hardware.TalonFX;
