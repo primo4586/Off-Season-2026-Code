@@ -36,10 +36,10 @@ public class Feeder extends SubsystemBase {
 
     private TalonFX talonFX = new TalonFX(MOTOR_ID);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
-    private final FlyWheelConfig IntakeRollerConfig = new FlyWheelConfig()
+    private final FlyWheelConfig feederConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
             .withTelemetry("Feeder", MECHANISM_VERBOSITY);
-    private FlyWheel intakeRoller = new FlyWheel(IntakeRollerConfig, motor);
+    private FlyWheel feeder = new FlyWheel(feederConfig, motor);
 
     /**
      * Gets the current velocity of the shooter.
@@ -47,47 +47,47 @@ public class Feeder extends SubsystemBase {
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return intakeRoller.getSpeed();
+        return feeder.getSpeed();
     }
     
     /**
-     * Activates FEEDER with constant INTAKE_SPEED
+     * Activates FEEDER with constant FEED_SPEED
      * in order to force balls into the shooter
      * 
      * @return Command
      */
     public Command feed() {
-        return intakeRoller.run(FEED_SPEED);
+        return feeder.run(FEED_SPEED);
     }
 
     /**
-     * Activates FEEDER with constant OUTTAKE_SPEED
+     * Activates FEEDER with constant UNFEED_SPEED
      * in order to remove jammed balls from shooter
      * 
      * @return Command
      */
     public Command unfeed() {
-        return intakeRoller.run(UNFEED_SPEED);
+        return feeder.run(UNFEED_SPEED);
     }
     
     /**
-     * Activates FEEDER with constant INTAKE_VOLTAGE
+     * Activates FEEDER with constant FEED_VOLTAGE
      * in order to force balls into the shooter
      * 
      * @return Command
      */
     public Command feedWithVoltage() {
-        return intakeRoller.setVoltage(FEED_VOLTAGE);
+        return feeder.setVoltage(FEED_VOLTAGE);
     }
     
     /**
-     * Activates FEEDER with constant OUTTAKE_VOLTAGE
+     * Activates FEEDER with constant UNFEED_VOLTAGE
      * in order to remove jammed balls from shooter
      * 
      * @return Command
      */
     public Command unfeedWithVoltage() {
-        return intakeRoller.setVoltage(UNFEED_VOLTAGE);
+        return feeder.setVoltage(UNFEED_VOLTAGE);
     }
     /**
      * sets intakeroller speed to dutyCycle
@@ -96,17 +96,17 @@ public class Feeder extends SubsystemBase {
      */
   public Command set(double dutyCycle)
   {
-    return intakeRoller.set(dutyCycle);
+    return feeder.set(dutyCycle);
   }
 
     @Override
     public void periodic() {
-        intakeRoller.updateTelemetry();
+        feeder.updateTelemetry();
     }
 
     @Override
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
-        intakeRoller.simIterate();
+        feeder.simIterate();
     }
 }
