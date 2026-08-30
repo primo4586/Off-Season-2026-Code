@@ -11,6 +11,7 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.hood.Hood;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Millimeter;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -34,7 +35,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    hood.setDefaultCommand(hood.runTo(Degrees.of(0)));
+    hood.setDefaultCommand(hood.set(0));
   }
 
   /**
@@ -53,6 +54,9 @@ public class RobotContainer {
 
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
+    m_driverController.a().whileTrue(hood.resetHood());
+    m_driverController.b().whileTrue(hood.set(1));
+    m_driverController.x().whileTrue(hood.set(-1));
     m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
   }
 

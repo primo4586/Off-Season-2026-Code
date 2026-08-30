@@ -3,25 +3,18 @@
 
 package frc.robot.subsystems.hood;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
-
-import java.util.function.Supplier;
+import static edu.wpi.first.units.Units.Millimeter;
+import static edu.wpi.first.units.Units.Volt;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Arm;
@@ -56,11 +49,12 @@ public class Hood extends SubsystemBase {
     private final SmartMotorController hoodSMC = new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1),
             hoodMotorConfig);
 
-    private final PivotConfig hoodConfig = new PivotConfig()
+    private final ArmConfig hoodConfig = new ArmConfig()
             .withTelemetry("Hood", TelemetryVerbosity.HIGH) // The Hood can be modeled as an arm since it has a
-            .withHardLimits(Degrees.of(0), Degrees.of(90)); // gravitational force acted upon based on the angle its in
+            .withLength(LENGTH_OF_SIM_ARM)
+            .withHardLimits(SIM_HARD_LOW_LIMIT,SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the angle its in
 
-    private final Pivot hood = new Pivot(hoodConfig, hoodSMC);
+    private final Arm hood = new Arm(hoodConfig, hoodSMC);
 
     public Hood() {
     }
@@ -86,16 +80,19 @@ public class Hood extends SubsystemBase {
     public Command runTo(Angle angle) {
         return hood.runTo(angle, TOLERANCE);
     }
-
     /**
-     * Set arm closed loop controller to go to the specified mechanism position.
-     * 
-     * @param angle Angle to go to.
+     * forces hood to hard limit when stopped resets encoder to 0
+     * @return
      */
-    public void setAngleSetpoint(Angle angle) {
-        hood.setMechanismPositionSetpoint(angle);
+    public Command resetHood(){
+        return runEnd(() -> hood.setVoltageSetpoint(RESET_VOLTAGE), () ->{
+            hood.setVoltageSetpoint(Volt.of(0));
+        setEncoderPostision(0);});
     }
-
+    public void setEncoderPostision(double pos){
+        this.hoodMotor.setPosition(pos);
+    }
+    
     /**
      * Move the arm up and down.
      * 
@@ -103,6 +100,9 @@ public class Hood extends SubsystemBase {
      */
     public Command set(double dutycycle) {
         return hood.set(dutycycle);
+    }
+    public Angle getAngle(){
+        return hood.getAngle();
     }
 
     @Override
