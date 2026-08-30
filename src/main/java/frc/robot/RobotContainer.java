@@ -20,9 +20,14 @@ import java.util.function.DoubleSupplier;
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.commands.Autos;
+import frc.robot.commands.ExampleCommand;
+import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.SwerveDriveSubSystem.SwerveDriveSubsSystem;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import frc.robot.subsystems.SwerveDriveSubSystem.SwerveDriveSubsSystem;;
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -39,6 +44,7 @@ public class RobotContainer {
   private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
+  private final SwerveDriveSubsSystem swerveDrive = new SwerveDriveSubsSystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
@@ -52,6 +58,12 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+
+    swerveDrive.setDefaultCommand(swerveDrive.drive(
+        swerveDrive.getChassisSpeedsSupplier(
+            m_driverController::getLeftY,
+            m_driverController::getLeftX,
+            m_driverController::getRightX)));
     // Configure the trigger bindings
     SmartDashboard.putNumber("shooter calibration RPM", 100);
     SmartDashboard.putNumber("hood angle rotations", 1);
