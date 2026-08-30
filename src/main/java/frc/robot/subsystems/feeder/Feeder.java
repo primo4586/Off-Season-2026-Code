@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.units.measure.Voltage;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -90,15 +92,30 @@ public class Feeder extends SubsystemBase {
         return feeder.setVoltage(UNFEED_VOLTAGE);
     }
     /**
-     * sets intakeroller speed to dutyCycle
-     * @param dutyCycle the speed to run the intakeroller at
+     * sets feeder speed to dutyCycle
+     * @param dutyCycle the speed to run the feeder at
      * @return Command
      */
   public Command set(double dutyCycle)
   {
     return feeder.set(dutyCycle);
   }
-
+    /**
+     * sets feeder voltage to voltage
+     * @param voltage the voltage to run the feeder at
+     * @return Command
+     */
+  public Command setVoltage(Voltage voltage){
+    return feeder.setVoltage(voltage);
+  }
+      /**
+     * sets feeder velocity to velocity
+     * @param velocity the velocity to run the feeder at
+     * @return Command
+     */
+  public Command run(AngularVelocity velocity){
+    return feeder.run(velocity);
+  }
     @Override
     public void periodic() {
         feeder.updateTelemetry();

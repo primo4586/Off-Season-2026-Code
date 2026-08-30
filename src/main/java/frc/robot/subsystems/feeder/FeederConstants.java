@@ -13,10 +13,10 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
 public class FeederConstants {
     //phisycal info
-        public static final int MOTOR_ID = 0;
-        public static final double GEARING = 3;
+        public static final int MOTOR_ID = 22;
+        public static final double GEARING = 9;
         public static final boolean INVERTED = false;
-        public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
+        public static final MotorMode NEUTRAL_MODE = MotorMode.BRAKE;
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity FEED_SPEED = RPM.of(720);
@@ -41,8 +41,8 @@ public class FeederConstants {
         public static final double SIM_KV = 0;
         public static final double SIM_KA = 0;
     //limits
-        public static Current STATOR_LIMIT = Amps.of(120);
-        public static Current SUPPLY_LIMIT = Amps.of(60);
+        public static Current STATOR_LIMIT = Amps.of(60);
+        public static Current SUPPLY_LIMIT = Amps.of(30);
 
     //general
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
