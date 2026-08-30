@@ -11,6 +11,7 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.shooter.Shooter;
 
 import static edu.wpi.first.units.Units.RPM;
+import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -34,7 +35,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    shooter.setDefaultCommand(shooter.set(0));
+    shooter.setDefaultCommand(shooter.run(REST_SPEED));
   }
 
   /**
