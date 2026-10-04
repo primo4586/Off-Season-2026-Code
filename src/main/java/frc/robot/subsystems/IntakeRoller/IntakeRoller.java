@@ -5,8 +5,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -18,10 +16,8 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 import static frc.robot.subsystems.IntakeRoller.IntakeRollerConstants.*;
@@ -34,7 +30,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 public class IntakeRoller extends SubsystemBase {
   @AutoLog
   public static class IntakeRollerInputs {
-    public AngularVelocity velocity = DegreesPerSecond.of(0);
+    public double velocity = 0; // RPM
     public Voltage volts = Volts.of(0);
     public Current supplyCurrent = Amps.of(0);
     public Current statorCurrent = Amps.of(0);
@@ -65,7 +61,7 @@ public class IntakeRoller extends SubsystemBase {
   private FlyWheel intake = new FlyWheel(intakeRollerConfig, motor);
 
   public void updateInputs() {
-    m_inputs.velocity = intake.getSpeed();
+    m_inputs.velocity = intake.getSpeed().in(RPM);
     m_inputs.volts = intake.getMotor().getVoltage();
     m_inputs.statorCurrent = intake.getMotor().getStatorCurrent();
     m_inputs.statorCurrent = intake.getMotor().getSupplyCurrent().orElse(Amps.of(0));

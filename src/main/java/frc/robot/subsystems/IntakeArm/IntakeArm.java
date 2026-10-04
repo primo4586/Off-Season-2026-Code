@@ -2,14 +2,13 @@ package frc.robot.subsystems.IntakeArm;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,7 +32,7 @@ public class IntakeArm extends SubsystemBase {
     public static class IntakeArmInputs {
         public Angle setpoint = Degrees.of(0);
         public Angle position = Degrees.of(0);
-        public AngularVelocity velocity = DegreesPerSecond.of(0);
+        public double velocity = 0.0; // RPM
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -79,7 +78,7 @@ public class IntakeArm extends SubsystemBase {
     public void updateInputs() {
         m_inputs.setpoint = arm.getMechanismSetpoint().orElse(MIN_ANGLE_DEGREES);
         m_inputs.position = arm.getAngle();
-        m_inputs.velocity = arm.getMotor().getMechanismVelocity();
+        m_inputs.velocity = arm.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
         m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));

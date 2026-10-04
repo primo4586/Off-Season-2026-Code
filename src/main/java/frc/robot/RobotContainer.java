@@ -5,33 +5,21 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.hood.Hood;
-
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Millimeter;
 
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
 
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RevolutionsPerSecond;
+import static edu.wpi.first.units.Units.Rotation;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
 import java.util.function.DoubleSupplier;
 
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
 
-import static edu.wpi.first.units.Units.RPM;
-
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -46,7 +34,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
   private final IntakeArm intakeArm = new IntakeArm();
@@ -58,7 +45,7 @@ public class RobotContainer {
       OperatorConstants.kDriverControllerPort);
 
   // SmartDashboard Calibration
-  private final DoubleSupplier shooterRps = () -> SmartDashboard.getNumber("shooter calibration RPS", 0.0);
+  private final DoubleSupplier shooterRPM = () -> SmartDashboard.getNumber("shooter calibration RPM", 0.0);
   private final DoubleSupplier hoodAngle = () -> SmartDashboard.getNumber("hood angle rotations", 0.0);
 
   /**
@@ -66,7 +53,10 @@ public class RobotContainer {
    */
   public RobotContainer() {
     // Configure the trigger bindings
+    SmartDashboard.putNumber("shooter calibration RPM", 100);
+    SmartDashboard.putNumber("hood angle rotations", 1);
     configureBindings();
+
     feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
@@ -88,36 +78,28 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    /*
+     * // intake arm test
+      m_driverController.a().whileTrue(intakeArm.openWithVoltage());
+      m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
+     */
+    /*
+     * // intake roller test
+      m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+      m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
+     */
+    /*
+      // hood test
+      m_driverController.a().whileTrue(hood.resetHood());
+      m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble())
+      ));
+     */
     /* 
-    // intake arm test
-    m_driverController.a().whileTrue(intakeArm.openWithVoltage());
-    m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
-    */
-   /* 
-    // intake roller test
-    m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
-    m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
-    */
-   /* 
-    // hood test
-    m_driverController.a().whileTrue(hood.resetHood());
-    m_driverController.b().whileTrue(hood.run(Degrees.of(hoodAngle.getAsDouble())));
-    */
-   /* 
     // shooter test
-    m_driverController.a().whileTrue(shooter.run(RevolutionsPerSecond.of(shooterRps.getAsDouble())));
+    m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())));
     */
 
   }
-
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+  public void periodic() {
   }
-
 }

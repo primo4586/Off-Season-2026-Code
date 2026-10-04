@@ -5,7 +5,6 @@ package frc.robot.subsystems.hood;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
@@ -15,7 +14,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,7 +35,7 @@ public class Hood extends SubsystemBase {
 
     @AutoLog
     public static class HoodInputs {
-        public AngularVelocity velocity = DegreesPerSecond.of(0.0);
+        public double velocity = 0.0; //RPM
         public double setpoint = 0.0;
         public double postision = 0.0;
         public Current statorCurrent = Amps.of(0.0);
@@ -80,7 +78,7 @@ public class Hood extends SubsystemBase {
     }
 
     public void updateInputs() {
-        m_inputs.velocity = hood.getMotor().getMechanismVelocity();
+        m_inputs.velocity = hood.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.setpoint = hood.getMechanismSetpoint().orElse(SIM_HARD_LOW_LIMIT).in(Degrees);
         m_inputs.postision = hood.getAngle().in(Degrees);
         m_inputs.volts = hood.getMotor().getVoltage();

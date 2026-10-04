@@ -17,19 +17,14 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import org.littletonrobotics.junction.Logger;
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Millimeter;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
-import javax.sound.sampled.Line;
 
 import org.littletonrobotics.junction.AutoLog;
 
@@ -39,9 +34,9 @@ public class Shooter extends SubsystemBase {
 
     @AutoLog
     public static class ShooterInputs {
-        public AngularVelocity angularVelocity = RPM.of(0);
+        public double angularVelocity = 0.0; // RPM
         public LinearAcceleration acceleration = MetersPerSecondPerSecond.of(0);
-        public AngularVelocity setpoint = RPM.of(0);
+        public double setpoint = 0.0; //RPM
         public Voltage volts = Volts.of(0);
         public Current statorcurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -75,9 +70,9 @@ public class Shooter extends SubsystemBase {
     private FlyWheel shooter = new FlyWheel(shooterConfig, motor);
 
     private void updateInputs() {
-        m_inputs.angularVelocity = shooter.getSpeed();
+        m_inputs.angularVelocity = shooter.getSpeed().in(RPM);
         m_inputs.acceleration = shooter.getMotor().getMeasurementAcceleration();
-        m_inputs.setpoint = shooter.getMechanismSetpointVelocity().orElse(RPM.of(0));
+        m_inputs.setpoint = shooter.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
         m_inputs.volts = shooter.getMotor().getVoltage();
         m_inputs.statorcurrent = shooter.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = shooter.getMotor().getSupplyCurrent().orElse(Amps.of(0));
@@ -89,7 +84,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return m_inputs.angularVelocity;
+        return RPM.of(m_inputs.angularVelocity);
     }
 
     /**
@@ -149,9 +144,9 @@ public class Shooter extends SubsystemBase {
     }
 
     /**
-     * sets intakeroller speed to dutyCycle
+     * sets shooter speed to dutyCycle
      * 
-     * @param dutyCycle the speed to run the intakeroller at
+     * @param dutyCycle the speed to run the shooter at
      * @return Command
      */
     public Command set(double dutyCycle) {

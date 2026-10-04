@@ -2,7 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inch;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -22,9 +22,9 @@ public class ShooterConstants {
     //control loop
         // general stuff
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
-        public static final AngularVelocity SHOOT_SPEED = RotationsPerSecond.of(20);
-        public static final AngularVelocity PASS_SPEED = RotationsPerSecond.of(20);
-        public static final AngularVelocity REST_SPEED = RotationsPerSecond.of(4);
+        public static final AngularVelocity SHOOT_SPEED = RPM.of(20);
+        public static final AngularVelocity PASS_SPEED = RPM.of(20);
+        public static final AngularVelocity REST_SPEED = RPM.of(4);
 
         // REAL PID
         public static final double REAL_KP = 0.2;
@@ -36,8 +36,8 @@ public class ShooterConstants {
         public static final double REAL_KA = 0.0080154;
 
         // SIM PID
-        public static final double SIM_KP = 10;
-        public static final double SIM_KI = 0;
+        public static final double SIM_KP = 4;
+        public static final double SIM_KI = 1;
         public static final double SIM_KD = 0.03;
         // SIM FEEDFOWARD
         public static final double SIM_KS = 0.17;

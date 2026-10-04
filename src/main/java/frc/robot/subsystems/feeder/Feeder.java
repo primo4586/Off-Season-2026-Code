@@ -7,7 +7,6 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -16,8 +15,8 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.feeder.FeederConstants.*;
 
@@ -30,7 +29,7 @@ public class Feeder extends SubsystemBase {
     @AutoLog
     public static class FeederInputs {
 
-        public AngularVelocity velocity = DegreesPerSecond.of(0);
+        public double velocity = 0.0; //RPM
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -62,7 +61,7 @@ public class Feeder extends SubsystemBase {
     private FlyWheel feeder = new FlyWheel(feederConfig, motor);
 
     private void updateInputs() {
-        m_inputs.velocity = feeder.getMotor().getMechanismVelocity();
+        m_inputs.velocity = feeder.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.volts = feeder.getMotor().getVoltage();
         m_inputs.statorCurrent = feeder.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = feeder.getMotor().getSupplyCurrent().orElse(Amps.of(0));
@@ -74,7 +73,7 @@ public class Feeder extends SubsystemBase {
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return m_inputs.velocity;
+        return RPM.of(m_inputs.velocity);
     }
 
     /**
