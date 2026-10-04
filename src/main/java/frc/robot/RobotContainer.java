@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.hood.Hood;
 
@@ -18,11 +19,16 @@ import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 import java.util.function.DoubleSupplier;
 
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
-
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import frc.robot.commands.DriveCommands;
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -39,7 +45,7 @@ public class RobotContainer {
   private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
-
+  private final Drive drive;
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
@@ -48,6 +54,9 @@ public class RobotContainer {
   private final DoubleSupplier shooterRPM = () -> SmartDashboard.getNumber("shooter calibration RPM", 0.0);
   private final DoubleSupplier hoodAngle = () -> SmartDashboard.getNumber("hood angle rotations", 0.0);
 
+
+
+  
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -55,6 +64,43 @@ public class RobotContainer {
     // Configure the trigger bindings
     SmartDashboard.putNumber("shooter calibration RPM", 100);
     SmartDashboard.putNumber("hood angle rotations", 1);
+switch (Constants.currentMode) {
+            case REAL:
+                // Real robot, instantiate hardware IO implementations
+                drive = Drive.getInstance(
+                        new GyroIOPigeon2(),
+                        new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                        new ModuleIOTalonFX(TunerConstants.FrontRight),
+                        new ModuleIOTalonFX(TunerConstants.BackLeft),
+                        new ModuleIOTalonFX(TunerConstants.BackRight));
+                break;
+
+            case SIM:
+                // Sim robot, instantiate physics sim IO implementations
+                drive = Drive.getInstance(
+                        new GyroIO() {
+                        },
+                        new ModuleIOSim(TunerConstants.FrontLeft),
+                        new ModuleIOSim(TunerConstants.FrontRight),
+                        new ModuleIOSim(TunerConstants.BackLeft),
+                        new ModuleIOSim(TunerConstants.BackRight));
+                break;
+
+            default:
+                // Replayed robot, disable IO implementations0
+                drive = Drive.getInstance(
+                        new GyroIO() {
+                        },
+                        new ModuleIO() {
+                        },
+                        new ModuleIO() {
+                        },
+                        new ModuleIO() {
+                        },
+                        new ModuleIO() {
+                        });
+                break;
+        }
     configureBindings();
 
     feeder.setDefaultCommand(feeder.set(0));
@@ -78,28 +124,40 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+        drive.setDefaultCommand(
+                DriveCommands.joystickDrive(
+                        drive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+
+                        () -> -m_driverController.getRightX() * 0.75
+                )
+                        .withName("Drive"));
     /*
      * // intake arm test
-      m_driverController.a().whileTrue(intakeArm.openWithVoltage());
-      m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
+     * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
+     * m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
      */
     /*
      * // intake roller test
-      m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
-      m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
+     * m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+     * m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
      */
     /*
-      // hood test
-      m_driverController.a().whileTrue(hood.resetHood());
-      m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble())
-      ));
+     * // hood test
+     * m_driverController.a().whileTrue(hood.resetHood());
+     * m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble()
+     * )
+     * ));
      */
-    /* 
-    // shooter test
-    m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())));
-    */
+    /*
+     * // shooter test
+     * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
+     * ));
+     */
 
   }
+
   public void periodic() {
   }
 }
