@@ -34,9 +34,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final Feeder feeder = new Feeder();
+  // private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
-  private final IntakeArm intakeArm = new IntakeArm();
+  // private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
 
@@ -53,11 +53,11 @@ public class RobotContainer {
    */
   public RobotContainer() {
     // Configure the trigger bindings
-    SmartDashboard.putNumber("shooter calibration RPM", 100);
+    SmartDashboard.putNumber("shooter calibration RPM", 1200);
     SmartDashboard.putNumber("hood angle rotations", 1);
     configureBindings();
 
-    feeder.setDefaultCommand(feeder.set(0));
+    // feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
@@ -78,26 +78,19 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    /*
-     * // intake arm test
-      m_driverController.a().whileTrue(intakeArm.openWithVoltage());
-      m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
-     */
-    /*
-     * // intake roller test
-      m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+     // intake roller test
+      m_driverController.x().whileTrue(intakeRoller.intakeWithVoltage());
       m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
-     */
+     
     /*
       // hood test
       m_driverController.a().whileTrue(hood.resetHood());
       m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble())
       ));
      */
-    /* 
     // shooter test
     m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())));
-    */
+
 
   }
   public void periodic() {

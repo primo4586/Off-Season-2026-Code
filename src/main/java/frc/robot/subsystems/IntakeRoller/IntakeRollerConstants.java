@@ -7,7 +7,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 public class IntakeRollerConstants {
-    public static final int MOTOR_ID = 2;
+    public static final int MOTOR_ID = 20;
     public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
     //Real PID constants
     public static final double REAL_KP = 50;

@@ -45,7 +45,7 @@ public class Hood extends SubsystemBase {
     }
 
     private final HoodInputsAutoLogged m_inputs = new HoodInputsAutoLogged();
-    private final TalonFX hoodMotor = new TalonFX(2);
+    private final TalonFX hoodMotor = new TalonFX(MOTOR_ID);
 
     private final SmartMotorControllerConfig hoodMotorConfig = new SmartMotorControllerConfig(this)
             .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)

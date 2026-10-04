@@ -24,7 +24,7 @@ public class ShooterConstants {
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity SHOOT_SPEED = RPM.of(20);
         public static final AngularVelocity PASS_SPEED = RPM.of(20);
-        public static final AngularVelocity REST_SPEED = RPM.of(4);
+        public static final AngularVelocity REST_SPEED = RPM.of(240);
 
         // REAL PID
         public static final double REAL_KP = 0.2;

@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -31,6 +32,7 @@ public class IntakeRoller extends SubsystemBase {
   @AutoLog
   public static class IntakeRollerInputs {
     public double velocity = 0; // RPM
+    public double setpoint = 0;
     public Voltage volts = Volts.of(0);
     public Current supplyCurrent = Amps.of(0);
     public Current statorCurrent = Amps.of(0);
@@ -62,6 +64,7 @@ public class IntakeRoller extends SubsystemBase {
 
   public void updateInputs() {
     m_inputs.velocity = intake.getSpeed().in(RPM);
+    m_inputs.setpoint = intake.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
     m_inputs.volts = intake.getMotor().getVoltage();
     m_inputs.statorCurrent = intake.getMotor().getStatorCurrent();
     m_inputs.statorCurrent = intake.getMotor().getSupplyCurrent().orElse(Amps.of(0));
