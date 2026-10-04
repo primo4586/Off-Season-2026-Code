@@ -1,31 +1,30 @@
 package frc.robot.subsystems.IntakeArm;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 import static frc.robot.subsystems.IntakeArm.IntakeArmConstants.*;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+/**
+ * Represents a intake arm.
+ *
+ * @author Itamar Ivri <itamarivri.best@gmail.com>
+ * @since 1.4
+ */
 public class IntakeArm extends SubsystemBase {
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
             .withControlMode(CONTROL_MODE)
@@ -62,41 +61,96 @@ public class IntakeArm extends SubsystemBase {
 
     // Arm Mechanism
     private Arm arm = new Arm(armCfg, motor);
-    
 
+    /**
+     * Sets the intake to positon.
+     *
+     * @param angle the angle.
+     * @return the resulting command instance.
+     */
     public Command SetIntakeToPositon(Angle angle) {
-        return arm.runTo(angle,ARM_TOLERANCE);
+        return arm.runTo(angle, ARM_TOLERANCE);
 
     }
 
+    /**
+     * Opens the intake.
+     *
+     * @return the resulting command instance.
+     */
     public Command OpenIntake() {
-        
-        return SetIntakeToPositon(MAX_ANGLE_DEGREES);
+
+        return SetIntakeToPositon(MAX_ANGLE_DEGREES).andThen(() -> System.out.println("OPENING INTAKE"));
     }
 
+    /**
+     * Closes the intake.
+     *
+     * @return the resulting command instance.
+     */
     public Command CloseIntake() {
-       
+
         return SetIntakeToPositon(MIN_ANGLE_DEGREES);
     }
 
+    /**
+     * Opens the and close intake inorder to move the balls.
+     *
+     * @return the resulting command instance.
+     */
     public Command OpenAndCloseIntake() {
-       
-        return Commands.repeatingSequence(arm.run(MIN_ANGLE_DEGREES).withTimeout(0.2), Commands.waitTime(Seconds.of(0.2)),
-                        arm.run(MID_POINT).withTimeout(Seconds.of(0.2)), Commands.waitTime(Seconds.of(0.2)));
-                
-    }
-     /**
-   * Move the arm up and down.
-   * @param dutycycle [-1, 1] speed to set the arm too.
-   */
-  public Command set(double dutycycle) { return arm.set(dutycycle);}
 
-      @Override
-    public void periodic(){
+        return Commands.repeatingSequence(arm.run(MIN_ANGLE_DEGREES).withTimeout(0.2),
+                Commands.waitTime(Seconds.of(0.2)),
+                arm.run(MID_POINT).withTimeout(Seconds.of(0.2)), Commands.waitTime(Seconds.of(0.2)));
+
+    }
+
+    /**
+     * Sets the voltage.
+     *
+     * @param voltage the voltage.
+     * @return the resulting command instance.
+     */
+    public Command setVoltage(Voltage voltage) {
+        return arm.setVoltage(voltage);
+    }
+
+    /**
+     * Opens the intake with voltage.
+     *
+     * @return the resulting command instance.
+     */
+    public Command openWithVoltage() {
+        return setVoltage(OPEN_VOLTAGE).withTimeout(OPEN_VOLTAGE_TIME);
+    }
+
+    /**
+     * Closes the intake with voltage.
+     *
+     * @return the resulting command instance.
+     */
+    public Command closeWithVoltage() {
+        return setVoltage(CLOSE_VOLTAGE).withTimeout(CLOSE_VOLTAGE_TIME);
+    }
+
+    /**
+     * Move the arm up and down.
+     * 
+     * @param dutycycle [-1, 1] speed to set the arm too.
+     * @return the resulting command instance
+     */
+    public Command set(double dutycycle) {
+        return arm.set(dutycycle);
+    }
+
+    @Override
+    public void periodic() {
         arm.updateTelemetry();
     }
+
     @Override
-    public void simulationPeriodic(){
+    public void simulationPeriodic() {
         arm.simIterate();
     }
 
