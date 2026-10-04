@@ -1,10 +1,16 @@
 package frc.robot.subsystems.IntakeArm;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -17,15 +23,23 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 import static frc.robot.subsystems.IntakeArm.IntakeArmConstants.*;
 
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
-/**
- * Represents a intake arm.
- *
- * @author Itamar Ivri <itamarivri.best@gmail.com>
- * @since 1.4
- */
 public class IntakeArm extends SubsystemBase {
+    @AutoLog
+    public static class IntakeArmInputs {
+        public Angle setpoint = Degrees.of(0);
+        public Angle position = Degrees.of(0);
+        public AngularVelocity velocity = DegreesPerSecond.of(0);
+        public Voltage volts = Volts.of(0);
+        public Current statorCurrent = Amps.of(0);
+        public Current supplyCurrent = Amps.of(0);
+    }
+
+    private final IntakeArmInputsAutoLogged m_inputs = new IntakeArmInputsAutoLogged();
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
@@ -61,6 +75,15 @@ public class IntakeArm extends SubsystemBase {
 
     // Arm Mechanism
     private Arm arm = new Arm(armCfg, motor);
+
+    public void updateInputs() {
+        m_inputs.setpoint = arm.getMechanismSetpoint().orElse(MIN_ANGLE_DEGREES);
+        m_inputs.position = arm.getAngle();
+        m_inputs.velocity = arm.getMotor().getMechanismVelocity();
+        m_inputs.volts = arm.getMotor().getVoltage();
+        m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
+        m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+    }
 
     /**
      * Sets the intake to positon.
@@ -146,6 +169,8 @@ public class IntakeArm extends SubsystemBase {
 
     @Override
     public void periodic() {
+        updateInputs();
+        Logger.processInputs("IntakeArm", m_inputs);
         arm.updateTelemetry();
     }
 
