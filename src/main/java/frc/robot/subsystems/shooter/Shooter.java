@@ -17,6 +17,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import org.littletonrobotics.junction.Logger;
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
@@ -38,9 +39,9 @@ public class Shooter extends SubsystemBase {
 
     @AutoLog
     public static class ShooterInputs {
-        public double angularVelocity = 0;
-        public double acceleration = 0;
-        public double setpoint = 0;
+        public AngularVelocity angularVelocity = RPM.of(0);
+        public LinearAcceleration acceleration = MetersPerSecondPerSecond.of(0);
+        public AngularVelocity setpoint = RPM.of(0);
         public Voltage volts = Volts.of(0);
         public Current statorcurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -74,18 +75,12 @@ public class Shooter extends SubsystemBase {
     private FlyWheel shooter = new FlyWheel(shooterConfig, motor);
 
     private void updateInputs() {
-        m_inputs.angularVelocity = shooter.getSpeed().in(RPM);
-        m_inputs.acceleration = shooter.getMotor().getMeasurementAcceleration().in(MetersPerSecondPerSecond);
-        m_inputs.setpoint = shooter.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
+        m_inputs.angularVelocity = shooter.getSpeed();
+        m_inputs.acceleration = shooter.getMotor().getMeasurementAcceleration();
+        m_inputs.setpoint = shooter.getMechanismSetpointVelocity().orElse(RPM.of(0));
         m_inputs.volts = shooter.getMotor().getVoltage();
         m_inputs.statorcurrent = shooter.getMotor().getStatorCurrent();
-        var supplyCurrent = motor.getSupplyCurrent();
-        if (supplyCurrent.isPresent()) {
-            m_inputs.supplyCurrent = supplyCurrent.get();
-        } else {
-            System.err.println("unable to get supplycurrent of shooter autologger not updated");
-        }
-
+        m_inputs.supplyCurrent = shooter.getMotor().getSupplyCurrent().orElse(Amps.of(0));
     }
 
     /**
@@ -94,7 +89,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return RPM.of(m_inputs.angularVelocity);
+        return m_inputs.angularVelocity;
     }
 
     /**
@@ -103,7 +98,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter Acceleration.
      */
     public LinearAcceleration getAcceleration() {
-        return MetersPerSecondPerSecond.of(m_inputs.acceleration);
+        return m_inputs.acceleration;
     }
 
     /**

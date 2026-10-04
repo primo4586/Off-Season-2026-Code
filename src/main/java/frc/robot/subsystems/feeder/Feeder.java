@@ -65,12 +65,7 @@ public class Feeder extends SubsystemBase {
         m_inputs.velocity = feeder.getMotor().getMechanismVelocity();
         m_inputs.volts = feeder.getMotor().getVoltage();
         m_inputs.statorCurrent = feeder.getMotor().getStatorCurrent();
-        var supplyCurrent = motor.getSupplyCurrent();
-        if (supplyCurrent.isPresent()) {
-            m_inputs.supplyCurrent = supplyCurrent.get();
-        } else {
-            System.err.println("unable to get supplycurrent of feeder autologger not updated");
-        }
+        m_inputs.supplyCurrent = feeder.getMotor().getSupplyCurrent().orElse(Amps.of(0));
     }
 
     /**

@@ -3,31 +3,50 @@
 
 package frc.robot.subsystems.hood;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Millimeter;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volt;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.ArmConfig;
-import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Arm;
-import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
-import static frc.robot.subsystems.hood.HoodConstants.*;;
+import static frc.robot.subsystems.hood.HoodConstants.*;
+
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;;
 
 public class Hood extends SubsystemBase {
+
+    @AutoLog
+    public static class HoodInputs {
+        public AngularVelocity velocity = DegreesPerSecond.of(0.0);
+        public double setpoint = 0.0;
+        public double postision = 0.0;
+        public Current statorCurrent = Amps.of(0.0);
+        public Current supplyCurrent = Amps.of(0.0);
+        public Voltage volts = Volts.of(0.0);
+        public boolean isHomed = false;
+    }
+
+    private final HoodInputsAutoLogged m_inputs = new HoodInputsAutoLogged();
     private final TalonFX hoodMotor = new TalonFX(2);
 
     private final SmartMotorControllerConfig hoodMotorConfig = new SmartMotorControllerConfig(this)
@@ -52,13 +71,24 @@ public class Hood extends SubsystemBase {
     private final ArmConfig hoodConfig = new ArmConfig()
             .withTelemetry("Hood", TelemetryVerbosity.HIGH) // The Hood can be modeled as an arm since it has a
             .withLength(LENGTH_OF_SIM_ARM)
-            .withHardLimits(SIM_HARD_LOW_LIMIT,SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the angle its in
+            .withHardLimits(SIM_HARD_LOW_LIMIT, SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the
+                                                                      // angle its in
 
     private final Arm hood = new Arm(hoodConfig, hoodSMC);
 
     public Hood() {
     }
 
+    public void updateInputs() {
+        m_inputs.velocity = hood.getMotor().getMechanismVelocity();
+        m_inputs.setpoint = hood.getMechanismSetpoint().orElse(SIM_HARD_LOW_LIMIT).in(Degrees);
+        m_inputs.postision = hood.getAngle().in(Degrees);
+        m_inputs.volts = hood.getMotor().getVoltage();
+        m_inputs.statorCurrent = hood.getMotor().getStatorCurrent();
+        m_inputs.supplyCurrent = hood.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+        m_inputs.isHomed = isHomed;
+    }
+    boolean isHomed = false;
     /**
      * Run the arm to the given angle, does not stop when the arm reaches the
      * setpoint.
@@ -74,25 +104,30 @@ public class Hood extends SubsystemBase {
      * Run the arm to the given angle, ends the command when the arm reaches the
      * setpoint within tolerance.
      * 
-     * @param angle     Angle to go to.
+     * @param angle Angle to go to.
      * @return A Command
      */
     public Command runTo(Angle angle) {
         return hood.runTo(angle, TOLERANCE);
     }
+
     /**
      * forces hood to hard limit when stopped resets encoder to 0
+     * 
      * @return
      */
-    public Command resetHood(){
-        return runEnd(() -> hood.setVoltageSetpoint(RESET_VOLTAGE), () ->{
+    public Command resetHood() {
+        return runEnd(() -> hood.setVoltageSetpoint(RESET_VOLTAGE), () -> {
             hood.setVoltageSetpoint(Volt.of(0));
-        setEncoderPostision(0);});
+            setEncoderPostision(0);
+            isHomed = true;
+        });
     }
-    public void setEncoderPostision(double pos){
+
+    public void setEncoderPostision(double pos) {
         this.hoodMotor.setPosition(pos);
     }
-    
+
     /**
      * Move the arm up and down.
      * 
@@ -101,12 +136,15 @@ public class Hood extends SubsystemBase {
     public Command set(double dutycycle) {
         return hood.set(dutycycle);
     }
-    public Angle getAngle(){
+
+    public Angle getAngle() {
         return hood.getAngle();
     }
 
     @Override
     public void periodic() {
+        updateInputs();
+        Logger.processInputs("Hood", m_inputs);
         hood.updateTelemetry();
     }
 
