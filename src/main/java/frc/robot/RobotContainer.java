@@ -8,6 +8,11 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.shooter.Shooter;
+
+import static edu.wpi.first.units.Units.RPM;
+import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
+
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
 
 import static edu.wpi.first.units.Units.RPM;
@@ -26,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -36,6 +42,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
   }
   
