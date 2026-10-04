@@ -2,8 +2,6 @@ package frc.robot.subsystems.hood;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Millimeter;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
@@ -35,31 +33,31 @@ public class HoodConstants {
         public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(2500);
 
         // REAL PID
-        public static final double REAL_KP = 1500; // TODO: tune
-        public static final double REAL_KI = 0;
-        public static final double REAL_KD = 0;
+        public static final double REAL_KP = 1500.0; // TODO: tune
+        public static final double REAL_KI = 0.0;
+        public static final double REAL_KD = 0.0;
         // REAL FEEDFOWARD
-        public static final double REAL_KS = 0; // TODO: tune
-        public static final double REAL_KG = 0;
-        public static final double REAL_KV = 0;
+        public static final double REAL_KS = 0.0; // TODO: tune
+        public static final double REAL_KG = 0.0;
+        public static final double REAL_KV = 0.0;
 
         // SIM PID
-        public static final double SIM_KP = 10;
-        public static final double SIM_KI = 0;
-        public static final double SIM_KD = 1;
+        public static final double SIM_KP = 10.0;
+        public static final double SIM_KI = 0.0;
+        public static final double SIM_KD = 1.0;
         // SIM FEEDFOWARD
-        public static final double SIM_KS = 0;
-        public static final double SIM_KG = 0;
-        public static final double SIM_KV = 0;
+        public static final double SIM_KS = 0.0;
+        public static final double SIM_KG = 0.0;
+        public static final double SIM_KV = 0.0;
     //phisycal info
-        public static final MechanismGearing GEARING = new MechanismGearing(GearBox.fromReductionStages(3, 4));
+        public static final MechanismGearing GEARING = new MechanismGearing(67.7778);
         public static final boolean INVERTED = true;
         public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
-        public static final Distance LENGTH_OF_SIM_ARM = Millimeter.of(56);
+        public static final Distance LENGTH_OF_SIM_ARM = Millimeter.of(560);
         public static final Angle STARTING_POSITION = Degrees.of(0);
-        public static final Angle HIGH_LIMIT = Degrees.of(100);
+        public static final Angle HIGH_LIMIT = Degrees.of(56);
         public static final Angle LOW_LIMIT = Degrees.of(0);
-        public static final Angle SIM_HARD_HIGH_LIMIT = Degrees.of(180);
+        public static final Angle SIM_HARD_HIGH_LIMIT = Degrees.of(56);
         public static final Angle SIM_HARD_LOW_LIMIT = Degrees.of(0);
     //limits
         public static Current STATOR_LIMIT = Amps.of(100);

@@ -30,7 +30,7 @@ public class IntakeRollerConstants {
     public static final boolean INVERTED = false;
     public static final MotorMode MOTOR_MODE= MotorMode.COAST;
     public static final double INTAKE_SPEED = 60;
-    public static final double INTAKE_VOLTAGE = 10;
+    public static final double INTAKE_VOLTAGE = 12;
     //LIMITS
     public static final Current STATOR_CURRENT_LIMIT = Amps.of(120);
     public static final Current SUPPLY_CURRENT_LIMIT = Amps.of(60);

@@ -10,7 +10,7 @@ import edu.wpi.first.units.measure.Voltage;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-
+//TODO: recalibrate based on new feeder when new feeder avaiable
 public class FeederConstants {
     //phisycal info
         public static final int MOTOR_ID = 22;

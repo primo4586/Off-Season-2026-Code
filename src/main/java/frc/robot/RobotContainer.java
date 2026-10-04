@@ -18,13 +18,17 @@ import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
 
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RevolutionsPerSecond;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
+
+import java.util.function.DoubleSupplier;
 
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
 
 import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -32,9 +36,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in
+ * the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of
+ * the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
@@ -47,49 +54,60 @@ public class RobotContainer {
   private final IntakeRoller intakeRoller = new IntakeRoller();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController m_driverController = new CommandXboxController(
+      OperatorConstants.kDriverControllerPort);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  // SmartDashboard Calibration
+  private final DoubleSupplier shooterRps = () -> SmartDashboard.getNumber("shooter calibration RPS", 0.0);
+  private final DoubleSupplier hoodAngle = () -> SmartDashboard.getNumber("hood angle rotations", 0.0);
+
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
     feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
-    
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
   }
-  
+
   /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
+   * Use this method to define your trigger->command mappings. Triggers can be
+   * created via the
+   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with
+   * an arbitrary
    * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
+   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+   * {@link
+   * CommandXboxController
+   * Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+   * PS4} controllers or
+   * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
-
-   
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
+    /* 
+    // intake arm test
+    m_driverController.a().whileTrue(intakeArm.openWithVoltage());
+    m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
+    */
+   /* 
+    // intake roller test
+    m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+    m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
+    */
+   /* 
+    // hood test
     m_driverController.a().whileTrue(hood.resetHood());
-    m_driverController.b().whileTrue(hood.set(1));
-    m_driverController.x().whileTrue(hood.set(-1));
-    m_driverController.b().whileTrue(intakeArm.OpenIntake());
-    m_driverController.a().whileTrue(intakeArm.CloseIntake());
-    m_driverController.x().whileTrue(intakeArm.OpenAndCloseIntake());
-     m_driverController.x().onFalse(intakeArm.OpenIntake());
-  
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
-    m_driverController.a().whileTrue(intakeRoller.intake());
-    m_driverController.x().whileTrue(intakeRoller.outake());
+    m_driverController.b().whileTrue(hood.run(Degrees.of(hoodAngle.getAsDouble())));
+    */
+   /* 
+    // shooter test
+    m_driverController.a().whileTrue(shooter.run(RevolutionsPerSecond.of(shooterRps.getAsDouble())));
+    */
+
   }
 
   /**
@@ -101,7 +119,5 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return Autos.exampleAuto(m_exampleSubsystem);
   }
-
-  
 
 }

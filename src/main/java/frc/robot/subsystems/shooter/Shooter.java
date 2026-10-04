@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Shooter extends SubsystemBase {
+    @SuppressWarnings("removal")
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
@@ -41,8 +42,9 @@ public class Shooter extends SubsystemBase {
             .withStatorCurrentLimit(STATOR_LIMIT)
             .withSupplyCurrentLimit(SUPPLY_LIMIT)
             .withFollowers(Pair.of(new TalonFX(FOLLOWER_ID, Constants.CAN_BUS_NAME), FOLLOWER_INVERTED));
+    @SuppressWarnings("removal")
     private TalonFX talonFX = new TalonFX(MOTOR_ID, Constants.CAN_BUS_NAME);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
+    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(2), smcConfig);
     private final FlyWheelConfig shooterConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
             .withTelemetry("Shooter", MECHANISM_VERBOSITY);
