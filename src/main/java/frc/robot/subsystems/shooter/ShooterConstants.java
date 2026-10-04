@@ -1,10 +1,12 @@
 package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
@@ -16,7 +18,7 @@ public class ShooterConstants {
         public static final boolean INVERTED = false;
         public static final boolean FOLLOWER_INVERTED = false;
         public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
-
+        public static final Distance WHEEL_CIRCUMFERENCE = Inch.of(4);
     //control loop
         // general stuff
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;

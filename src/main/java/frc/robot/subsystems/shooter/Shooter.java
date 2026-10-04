@@ -15,18 +15,41 @@ import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
-
+import org.littletonrobotics.junction.Logger;
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Millimeter;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.sound.sampled.Line;
+
+import org.littletonrobotics.junction.AutoLog;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Shooter extends SubsystemBase {
+
+    @AutoLog
+    public static class ShooterInputs {
+        public double angularVelocity = 0;
+        public double acceleration = 0;
+        public double setpoint = 0;
+        public Voltage volts = Volts.of(0);
+        public Current statorcurrent = Amps.of(0);
+        public Current supplycurrent = Amps.of(0);
+    }
+
+    private final ShooterInputsAutoLogged m_inputs = new ShooterInputsAutoLogged();
     @SuppressWarnings("removal")
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+            .withMechanismCircumference(WHEEL_CIRCUMFERENCE)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
             .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
@@ -50,13 +73,28 @@ public class Shooter extends SubsystemBase {
             .withTelemetry("Shooter", MECHANISM_VERBOSITY);
     private FlyWheel shooter = new FlyWheel(shooterConfig, motor);
 
+    private void updateInputs() {
+        m_inputs.angularVelocity = shooter.getSpeed().in(RPM);
+        m_inputs.acceleration = shooter.getMotor().getMeasurementAcceleration().in(MetersPerSecondPerSecond);
+        m_inputs.setpoint = shooter.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
+        m_inputs.volts = shooter.getMotor().getVoltage();
+        m_inputs.statorcurrent = shooter.getMotor().getStatorCurrent();
+        var supplyCurrent = motor.getSupplyCurrent();
+        if (supplyCurrent.isPresent()) {
+            m_inputs.supplycurrent = supplyCurrent.get();
+        } else {
+            System.err.println("unable to get supplycurrent autologger not updated");
+        }
+
+    }
+
     /**
      * Gets the current velocity of the shooter.
      *
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return shooter.getSpeed();
+        return RPM.of(m_inputs.angularVelocity);
     }
 
     /**
@@ -65,7 +103,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter Acceleration.
      */
     public LinearAcceleration getAcceleration() {
-        return shooter.getMotor().getMeasurementAcceleration();
+        return MetersPerSecondPerSecond.of(m_inputs.acceleration);
     }
 
     /**
@@ -74,7 +112,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter Voltage.
      */
     public Voltage getVoltage() {
-        return shooter.getMotor().getVoltage();
+        return m_inputs.volts;
     }
 
     /**
@@ -83,7 +121,7 @@ public class Shooter extends SubsystemBase {
      * @return Shooter stator current.
      */
     public Current getStatorCurrent() {
-        return shooter.getMotor().getStatorCurrent();
+        return m_inputs.statorcurrent;
     }
 
     /**
@@ -91,8 +129,8 @@ public class Shooter extends SubsystemBase {
      *
      * @return Shooter supply current.
      */
-    public Optional<Current> getSupplyCurrent() {
-        return shooter.getMotor().getSupplyCurrent();
+    public Current getSupplyCurrent() {
+        return m_inputs.statorcurrent;
     }
 
     /**
@@ -163,6 +201,8 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         shooter.updateTelemetry();
+        updateInputs();
+        Logger.processInputs("Shooter", m_inputs);
     }
 
     @Override
