@@ -43,7 +43,7 @@ public class Shooter extends SubsystemBase {
         public double setpoint = 0;
         public Voltage volts = Volts.of(0);
         public Current statorcurrent = Amps.of(0);
-        public Current supplycurrent = Amps.of(0);
+        public Current supplyCurrent = Amps.of(0);
     }
 
     private final ShooterInputsAutoLogged m_inputs = new ShooterInputsAutoLogged();
@@ -81,9 +81,9 @@ public class Shooter extends SubsystemBase {
         m_inputs.statorcurrent = shooter.getMotor().getStatorCurrent();
         var supplyCurrent = motor.getSupplyCurrent();
         if (supplyCurrent.isPresent()) {
-            m_inputs.supplycurrent = supplyCurrent.get();
+            m_inputs.supplyCurrent = supplyCurrent.get();
         } else {
-            System.err.println("unable to get supplycurrent autologger not updated");
+            System.err.println("unable to get supplycurrent of shooter autologger not updated");
         }
 
     }

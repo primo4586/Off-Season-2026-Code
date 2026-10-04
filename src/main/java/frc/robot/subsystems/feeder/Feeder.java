@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -14,13 +15,30 @@ import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.feeder.FeederConstants.*;
+
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Feeder extends SubsystemBase {
+    @AutoLog
+    public static class FeederInputs {
+
+        public AngularVelocity velocity = DegreesPerSecond.of(0);
+        public Voltage volts = Volts.of(0);
+        public Current statorCurrent = Amps.of(0);
+        public Current supplyCurrent = Amps.of(0);
+    }
+
+    private final FeederInputsAutoLogged m_inputs = new FeederInputsAutoLogged();
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+            .withMechanismCircumference(FEEDER_CIRCUMFRANCE)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
             .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
@@ -43,15 +61,27 @@ public class Feeder extends SubsystemBase {
             .withTelemetry("Feeder", MECHANISM_VERBOSITY);
     private FlyWheel feeder = new FlyWheel(feederConfig, motor);
 
+    private void updateInputs() {
+        m_inputs.velocity = feeder.getMotor().getMechanismVelocity();
+        m_inputs.volts = feeder.getMotor().getVoltage();
+        m_inputs.statorCurrent = feeder.getMotor().getStatorCurrent();
+        var supplyCurrent = motor.getSupplyCurrent();
+        if (supplyCurrent.isPresent()) {
+            m_inputs.supplyCurrent = supplyCurrent.get();
+        } else {
+            System.err.println("unable to get supplycurrent of feeder autologger not updated");
+        }
+    }
+
     /**
      * Gets the current velocity of the shooter.
      *
      * @return Shooter velocity.
      */
     public AngularVelocity getVelocity() {
-        return feeder.getSpeed();
+        return m_inputs.velocity;
     }
-    
+
     /**
      * Activates FEEDER with constant FEED_SPEED
      * in order to force balls into the shooter
@@ -71,7 +101,7 @@ public class Feeder extends SubsystemBase {
     public Command unfeed() {
         return feeder.run(UNFEED_SPEED);
     }
-    
+
     /**
      * Activates FEEDER with constant FEED_VOLTAGE
      * in order to force balls into the shooter
@@ -81,7 +111,7 @@ public class Feeder extends SubsystemBase {
     public Command feedWithVoltage() {
         return feeder.setVoltage(FEED_VOLTAGE);
     }
-    
+
     /**
      * Activates FEEDER with constant UNFEED_VOLTAGE
      * in order to remove jammed balls from shooter
@@ -91,33 +121,41 @@ public class Feeder extends SubsystemBase {
     public Command unfeedWithVoltage() {
         return feeder.setVoltage(UNFEED_VOLTAGE);
     }
+
     /**
      * sets feeder speed to dutyCycle
+     * 
      * @param dutyCycle the speed to run the feeder at
      * @return Command
      */
-  public Command set(double dutyCycle)
-  {
-    return feeder.set(dutyCycle);
-  }
+    public Command set(double dutyCycle) {
+        return feeder.set(dutyCycle);
+    }
+
     /**
      * sets feeder voltage to voltage
+     * 
      * @param voltage the voltage to run the feeder at
      * @return Command
      */
-  public Command setVoltage(Voltage voltage){
-    return feeder.setVoltage(voltage);
-  }
-      /**
+    public Command setVoltage(Voltage voltage) {
+        return feeder.setVoltage(voltage);
+    }
+
+    /**
      * sets feeder velocity to velocity
+     * 
      * @param velocity the velocity to run the feeder at
      * @return Command
      */
-  public Command run(AngularVelocity velocity){
-    return feeder.run(velocity);
-  }
+    public Command run(AngularVelocity velocity) {
+        return feeder.run(velocity);
+    }
+
     @Override
     public void periodic() {
+        updateInputs();
+        Logger.processInputs("Feeder", m_inputs);
         feeder.updateTelemetry();
     }
 

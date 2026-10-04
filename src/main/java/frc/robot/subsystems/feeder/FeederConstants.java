@@ -1,11 +1,13 @@
 package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Millimeter;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
@@ -17,6 +19,7 @@ public class FeederConstants {
         public static final double GEARING = 9;
         public static final boolean INVERTED = false;
         public static final MotorMode NEUTRAL_MODE = MotorMode.BRAKE;
+        public static final Distance FEEDER_CIRCUMFRANCE = Millimeter.of(40);
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity FEED_SPEED = RPM.of(720);
