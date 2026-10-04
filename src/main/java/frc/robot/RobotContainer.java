@@ -11,6 +11,11 @@ import frc.robot.subsystems.hood.Hood;
 
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
@@ -29,6 +34,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
+
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -46,6 +52,7 @@ public class RobotContainer {
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
   private final Drive drive;
+  private final Vision vision;
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
@@ -54,9 +61,6 @@ public class RobotContainer {
   private final DoubleSupplier shooterRPM = () -> SmartDashboard.getNumber("shooter calibration RPM", 0.0);
   private final DoubleSupplier hoodAngle = () -> SmartDashboard.getNumber("hood angle rotations", 0.0);
 
-
-
-  
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -64,43 +68,53 @@ public class RobotContainer {
     // Configure the trigger bindings
     SmartDashboard.putNumber("shooter calibration RPM", 100);
     SmartDashboard.putNumber("hood angle rotations", 1);
-switch (Constants.currentMode) {
-            case REAL:
-                // Real robot, instantiate hardware IO implementations
-                drive = Drive.getInstance(
-                        new GyroIOPigeon2(),
-                        new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                        new ModuleIOTalonFX(TunerConstants.FrontRight),
-                        new ModuleIOTalonFX(TunerConstants.BackLeft),
-                        new ModuleIOTalonFX(TunerConstants.BackRight));
-                break;
+    switch (Constants.currentMode) {
+      case REAL:
+        // Real robot, instantiate hardware IO implementations
+        drive = Drive.getInstance(
+            new GyroIOPigeon2(),
+            new ModuleIOTalonFX(TunerConstants.FrontLeft),
+            new ModuleIOTalonFX(TunerConstants.FrontRight),
+            new ModuleIOTalonFX(TunerConstants.BackLeft),
+            new ModuleIOTalonFX(TunerConstants.BackRight));
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVision(VisionConstants.fowordCameraName, VisionConstants.fowordTransform));
+        break;
 
-            case SIM:
-                // Sim robot, instantiate physics sim IO implementations
-                drive = Drive.getInstance(
-                        new GyroIO() {
-                        },
-                        new ModuleIOSim(TunerConstants.FrontLeft),
-                        new ModuleIOSim(TunerConstants.FrontRight),
-                        new ModuleIOSim(TunerConstants.BackLeft),
-                        new ModuleIOSim(TunerConstants.BackRight));
-                break;
+      case SIM:
+        // Sim robot, instantiate physics sim IO implementations
+        drive = Drive.getInstance(
+            new GyroIO() {
+            },
+            new ModuleIOSim(TunerConstants.FrontLeft),
+            new ModuleIOSim(TunerConstants.FrontRight),
+            new ModuleIOSim(TunerConstants.BackLeft),
+            new ModuleIOSim(TunerConstants.BackRight));
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVisionSim(VisionConstants.fowordCameraName, VisionConstants.fowordTransform,
+                drive::getPose));
+        break;
 
-            default:
-                // Replayed robot, disable IO implementations0
-                drive = Drive.getInstance(
-                        new GyroIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        });
-                break;
-        }
+      default:
+        // Replayed robot, disable IO implementations0
+        drive = Drive.getInstance(
+            new GyroIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            });
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
+        }, new VisionIO() {
+        });
+        break;
+    }
     configureBindings();
 
     feeder.setDefaultCommand(feeder.set(0));
@@ -124,15 +138,14 @@ switch (Constants.currentMode) {
    * joysticks}.
    */
   private void configureBindings() {
-        drive.setDefaultCommand(
-                DriveCommands.joystickDrive(
-                        drive,
-                        () -> -m_driverController.getLeftY(),
-                        () -> -m_driverController.getLeftX(),
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
 
-                        () -> -m_driverController.getRightX() * 0.75
-                )
-                        .withName("Drive"));
+            () -> -m_driverController.getRightX() * 0.75)
+            .withName("Drive"));
     /*
      * // intake arm test
      * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
