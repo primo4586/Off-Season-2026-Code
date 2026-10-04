@@ -10,6 +10,7 @@ import frc.robot.subsystems.hood.Hood;
 
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
+import yams.mechanisms.swerve.utility.SwerveInputStream;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
@@ -18,7 +19,7 @@ import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 import java.util.function.DoubleSupplier;
 
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;
-
+import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -39,11 +40,19 @@ public class RobotContainer {
   private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
-
+  private final Drive drive = new Drive();
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
-
+      private       boolean headingControlEnabled = false;
+  private final SwerveInputStream driveStream = drive.getAngularVelocityStream(m_driverController::getLeftY,
+                                                                                 m_driverController::getLeftX,
+                                                                                 ()->m_driverController.getRawAxis(2))
+                                                       .withControllerHeadingAxis(m_driverController::getRightX,
+                                                                                  m_driverController::getRightY)
+                                                       .withHeadingControl(() -> headingControlEnabled)
+                                                       .withDeadband(0.05)
+                                                       .withAllianceRelativeControl();
   // SmartDashboard Calibration
   private final DoubleSupplier shooterRPM = () -> SmartDashboard.getNumber("shooter calibration RPM", 0.0);
   private final DoubleSupplier hoodAngle = () -> SmartDashboard.getNumber("hood angle rotations", 0.0);
@@ -56,7 +65,6 @@ public class RobotContainer {
     SmartDashboard.putNumber("shooter calibration RPM", 100);
     SmartDashboard.putNumber("hood angle rotations", 1);
     configureBindings();
-
     feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
@@ -78,28 +86,32 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    drive.setDefaultCommand(drive.drive(driveStream));
     /*
      * // intake arm test
-      m_driverController.a().whileTrue(intakeArm.openWithVoltage());
-      m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
+     * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
+     * m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
      */
     /*
      * // intake roller test
-      m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
-      m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
+     * m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+     * m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
      */
     /*
-      // hood test
-      m_driverController.a().whileTrue(hood.resetHood());
-      m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble())
-      ));
+     * // hood test
+     * m_driverController.a().whileTrue(hood.resetHood());
+     * m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble()
+     * )
+     * ));
      */
-    /* 
-    // shooter test
-    m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())));
-    */
+    /*
+     * // shooter test
+     * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
+     * ));
+     */
 
   }
+
   public void periodic() {
   }
 }
