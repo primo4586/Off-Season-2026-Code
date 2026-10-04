@@ -13,6 +13,7 @@ import frc.robot.subsystems.hood.Hood;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Millimeter;
 
+import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
 
 import static edu.wpi.first.units.Units.RPM;
@@ -24,6 +25,8 @@ import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -37,6 +40,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final Hood hood = new Hood();
+  private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
 
@@ -49,6 +53,7 @@ public class RobotContainer {
     // Configure the trigger bindings
     configureBindings();
     hood.setDefaultCommand(hood.set(0));
+    
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
   }
@@ -74,6 +79,11 @@ public class RobotContainer {
     m_driverController.a().whileTrue(hood.resetHood());
     m_driverController.b().whileTrue(hood.set(1));
     m_driverController.x().whileTrue(hood.set(-1));
+    m_driverController.b().whileTrue(intakeArm.OpenIntake());
+    m_driverController.a().whileTrue(intakeArm.CloseIntake());
+    m_driverController.x().whileTrue(intakeArm.OpenAndCloseIntake());
+     m_driverController.x().onFalse(intakeArm.OpenIntake());
+  
     m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
     m_driverController.a().whileTrue(intakeRoller.intake());
     m_driverController.x().whileTrue(intakeRoller.outake());
@@ -88,4 +98,7 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return Autos.exampleAuto(m_exampleSubsystem);
   }
+
+  
+
 }
