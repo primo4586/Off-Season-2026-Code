@@ -17,6 +17,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
+import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
@@ -30,7 +31,10 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
@@ -48,7 +52,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
-  private final IntakeArm intakeArm = new IntakeArm();
+  // private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
   private final Drive drive;
@@ -67,7 +71,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     SmartDashboard.putNumber("shooter calibration RPM", 100);
-    SmartDashboard.putNumber("hood angle rotations", 1);
+    SmartDashboard.putNumber("hood angle rotations", 10);
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -146,6 +150,14 @@ public class RobotContainer {
 
             () -> -m_driverController.getRightX() * 0.75)
             .withName("Drive"));
+    m_driverController
+        .povUp()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(
+                    new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
+                drive)
+                .ignoringDisable(true));
     /*
      * // intake arm test
      * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
@@ -156,13 +168,9 @@ public class RobotContainer {
      * m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
      * m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
      */
-    /*
-     * // hood test
-     * m_driverController.a().whileTrue(hood.resetHood());
-     * m_driverController.b().whileTrue(hood.run(Rotation.of(hoodAngle.getAsDouble()
-     * )
-     * ));
-     */
+
+    m_driverController.a().whileTrue(feeder.feed());
+    m_driverController.b().whileTrue(feeder.unfeed());
     /*
      * // shooter test
      * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
