@@ -37,7 +37,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
-  private final IntakeArm intakeArm = new IntakeArm();
+  // private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
   private final Drive drive = new Drive();
