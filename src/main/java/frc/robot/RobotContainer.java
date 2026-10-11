@@ -36,7 +36,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   // private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
-  // private final IntakeArm intakeArm = new IntakeArm();
+  private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
 
@@ -81,7 +81,8 @@ public class RobotContainer {
      // intake roller test
       m_driverController.x().whileTrue(intakeRoller.intakeWithVoltage());
       m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
-     
+    m_driverController.povUp().onTrue(intakeArm.OpenIntake());
+    m_driverController.povDown().onTrue(intakeArm.CloseIntake());
     /*
       // hood test
       m_driverController.a().whileTrue(hood.resetHood());

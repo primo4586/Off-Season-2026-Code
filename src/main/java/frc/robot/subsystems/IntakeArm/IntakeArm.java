@@ -2,20 +2,26 @@ package frc.robot.subsystems.IntakeArm;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Millimeter;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.ArmConfig;
+import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Arm;
+import yams.mechanisms.positional.Elevator;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
@@ -30,8 +36,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 public class IntakeArm extends SubsystemBase {
     @AutoLog
     public static class IntakeArmInputs {
-        public Angle setpoint = Degrees.of(0);
-        public Angle position = Degrees.of(0);
+        public double setpoint = 0.0;
+        public double position = 0.0;
         public double velocity = 0.0; // RPM
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
@@ -40,13 +46,14 @@ public class IntakeArm extends SubsystemBase {
 
     private final IntakeArmInputsAutoLogged m_inputs = new IntakeArmInputsAutoLogged();
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+            .withMechanismCircumference(CIRCUMFERENCE)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
             .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
             .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
             // Feedforward Constants
-            .withFeedforward(new ArmFeedforward(REAL_KS, REAL_KG, REAL_KV))
-            .withSimFeedforward(new ArmFeedforward(SIM_KS, SIM_KG, SIM_KV))
+            .withFeedforward(new ElevatorFeedforward(REAL_KS, 0, REAL_KV))
+            .withSimFeedforward(new ElevatorFeedforward(SIM_KS, 0, SIM_KV))
             // Telemetry name and verbosity level
             .withTelemetry("ArmMotor", MOTOR_TELEMATRY_MODE)
             // Gearing from the motor rotor to final shaft.
@@ -60,24 +67,24 @@ public class IntakeArm extends SubsystemBase {
             .withIdleMode(MOTOR_MODE)
             .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
             .withSupplyCurrentLimit(SUPPLY_CURRENT_LIMIT)
-            .withStartingPosition(MIN_ANGLE_DEGREES);
+            .withStartingPosition(MIN_DISTANCE_MM);
 
     private static TalonFX talonFX = new TalonFX(MOTOR_ID);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
-    private ArmConfig armCfg = new ArmConfig()
-            // Hard limit is applied to the simulation.
-            .withHardLimits(MIN_ANGLE_DEGREES, MAX_ANGLE_DEGREES)
-            // Length and mass of your arm for sim.
-            .withLength(ARM_LENGTH)
-            // Telemetry name and verbosity for the arm.
-            .withTelemetry("Arm", ARM_TELEMETRY_MODE);
+    private ElevatorConfig armCfg = new ElevatorConfig()
+            .withHardLimits(MIN_DISTANCE_MM,MAX_DISTANCE_MM)
+            .withCarriageWeight(CARRIAGE_WEIGHT)
+            .withHorizontalElevator()
+            .withAngle(Degrees.of(0))
+            .withTelemetry("intakeArm", ARM_TELEMETRY_MODE);
 
     // Arm Mechanism
-    private Arm arm = new Arm(armCfg, motor);
+    private Elevator arm = new Elevator(armCfg, motor);
 
     public void updateInputs() {
-        m_inputs.setpoint = arm.getMechanismSetpoint().orElse(MIN_ANGLE_DEGREES);
-        m_inputs.position = arm.getAngle();
+        m_inputs.setpoint = smcConfig.convertFromMechanism(arm.getMechanismSetpoint().orElse(Degrees.of(0)))
+                .in(Millimeter); // get setpoint in mm
+        m_inputs.position = arm.getHeight().in(Millimeter);
         m_inputs.velocity = arm.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
@@ -87,11 +94,11 @@ public class IntakeArm extends SubsystemBase {
     /**
      * Sets the intake to positon.
      *
-     * @param angle the angle.
+     * @param distance the distance to move.
      * @return the resulting command instance.
      */
-    public Command SetIntakeToPositon(Angle angle) {
-        return arm.runTo(angle, ARM_TOLERANCE);
+    public Command SetIntakeToPositon(Distance distance) {
+        return arm.runTo(distance, ARM_TOLERANCE);
 
     }
 
@@ -102,7 +109,7 @@ public class IntakeArm extends SubsystemBase {
      */
     public Command OpenIntake() {
 
-        return SetIntakeToPositon(MAX_ANGLE_DEGREES).andThen(() -> System.out.println("OPENING INTAKE"));
+        return SetIntakeToPositon(MAX_DISTANCE_MM).andThen(() -> System.out.println("OPENING INTAKE"));
     }
 
     /**
@@ -112,7 +119,7 @@ public class IntakeArm extends SubsystemBase {
      */
     public Command CloseIntake() {
 
-        return SetIntakeToPositon(MIN_ANGLE_DEGREES);
+        return SetIntakeToPositon(MIN_DISTANCE_MM);
     }
 
     /**
@@ -122,7 +129,7 @@ public class IntakeArm extends SubsystemBase {
      */
     public Command OpenAndCloseIntake() {
 
-        return Commands.repeatingSequence(arm.run(MIN_ANGLE_DEGREES).withTimeout(0.2),
+        return Commands.repeatingSequence(arm.run(MIN_DISTANCE_MM).withTimeout(0.2),
                 Commands.waitTime(Seconds.of(0.2)),
                 arm.run(MID_POINT).withTimeout(Seconds.of(0.2)), Commands.waitTime(Seconds.of(0.2)));
 
