@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
+import yams.gearing.GearBox;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
@@ -49,7 +50,7 @@ public class IntakeArmConstants {
     public static final double SIM_KS = 0;
     public static final double SIM_KV = 0;
     //Physical Constants
-    public static final double GEARING = 3.5903;
+    public static final GearBox GEARING = GearBox.fromReductionStages(5.0 * (22.0 / 16.0) * (47.0 / 18.0));
     public static final boolean INVERTED = false;
     public static final MotorMode MOTOR_MODE= MotorMode.BRAKE;
     public static final double MAXVEL = 10;

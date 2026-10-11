@@ -18,6 +18,8 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Arm;
@@ -61,7 +63,7 @@ public class IntakeArm extends SubsystemBase {
             // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
             // your motor.
             // You could also use .withGearing(12) which does the same thing.
-            .withGearing(GEARING)
+            .withGearing(new MechanismGearing(GEARING))
             // Motor properties to prevent over currenting.
             .withMotorInverted(INVERTED)
             .withIdleMode(MOTOR_MODE)
@@ -72,7 +74,7 @@ public class IntakeArm extends SubsystemBase {
     private static TalonFX talonFX = new TalonFX(MOTOR_ID);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
     private ElevatorConfig armCfg = new ElevatorConfig()
-            .withHardLimits(MIN_DISTANCE_MM,MAX_DISTANCE_MM)
+            .withHardLimits(MIN_DISTANCE_MM, MAX_DISTANCE_MM)
             .withCarriageWeight(CARRIAGE_WEIGHT)
             .withHorizontalElevator()
             .withAngle(Degrees.of(0))
