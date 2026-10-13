@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.primoLib.Elastic;
 import frc.robot.util.LocalADStarAK;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -34,6 +35,7 @@ public class Robot extends LoggedRobot {
    * initialization code.
    */
   public Robot() {
+    Elastic.displayField();
     RobotController.setBrownoutVoltage(6.3);
     SmartDashboard.putData("CommandScheduler", CommandScheduler.getInstance());
     // Record metadata
@@ -101,6 +103,8 @@ public class Robot extends LoggedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+    SmartDashboard.putData("CommandScheduler", CommandScheduler.getInstance());
+    Elastic.displayAll();
     m_robotContainer.periodic();
   }
 
