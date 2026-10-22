@@ -10,6 +10,9 @@ import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
@@ -44,6 +47,7 @@ public class IntakeArm extends SubsystemBase {
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
+        public Pose3d componentPose = new Pose3d(); 
     }
 
     private final IntakeArmInputsAutoLogged m_inputs = new IntakeArmInputsAutoLogged();
@@ -91,6 +95,13 @@ public class IntakeArm extends SubsystemBase {
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
         m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+        double totalExtensionMeters = -(m_inputs.position / 1000.0); 
+        double deltaX = totalExtensionMeters * Math.cos(TRACK_ANGLE_DEGREES);
+        double deltaZ = -totalExtensionMeters * Math.sin(TRACK_ANGLE_DEGREES);
+                m_inputs.componentPose = new Pose3d(
+            new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
+            new Rotation3d()                        // No rotation
+        );
     }
 
     /**
