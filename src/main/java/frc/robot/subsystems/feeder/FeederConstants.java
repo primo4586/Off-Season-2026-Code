@@ -17,7 +17,7 @@ public class FeederConstants {
     //phisycal info
         public static final int MOTOR_ID = 22;
         public static final double GEARING = 9;
-        public static final boolean INVERTED = false;
+        public static final boolean INVERTED = true;
         public static final MotorMode NEUTRAL_MODE = MotorMode.BRAKE;
         public static final Distance FEEDER_CIRCUMFRANCE = Millimeter.of(40);
     //control loop

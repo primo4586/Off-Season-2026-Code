@@ -50,7 +50,7 @@ import frc.robot.commands.DriveCommands;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  // private final Feeder feeder = new Feeder();
+  private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
   // private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
@@ -70,11 +70,58 @@ public class RobotContainer {
    */
   public RobotContainer() {
     // Configure the trigger bindings
-    SmartDashboard.putNumber("shooter calibration RPM", 1200);
-    SmartDashboard.putNumber("hood angle rotations", 1);
+    SmartDashboard.putNumber("shooter calibration RPM", 100);
+    SmartDashboard.putNumber("hood angle rotations", 10);
+    switch (Constants.currentMode) {
+      case REAL:
+        // Real robot, instantiate hardware IO implementations
+        drive = Drive.getInstance(
+            new GyroIOPigeon2(),
+            new ModuleIOTalonFX(TunerConstants.FrontLeft),
+            new ModuleIOTalonFX(TunerConstants.FrontRight),
+            new ModuleIOTalonFX(TunerConstants.BackLeft),
+            new ModuleIOTalonFX(TunerConstants.BackRight));
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVision(VisionConstants.fowordCameraName, VisionConstants.fowordTransform));
+        break;
+
+      case SIM:
+        // Sim robot, instantiate physics sim IO implementations
+        drive = Drive.getInstance(
+            new GyroIO() {
+            },
+            new ModuleIOSim(TunerConstants.FrontLeft),
+            new ModuleIOSim(TunerConstants.FrontRight),
+            new ModuleIOSim(TunerConstants.BackLeft),
+            new ModuleIOSim(TunerConstants.BackRight));
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVisionSim(VisionConstants.fowordCameraName, VisionConstants.fowordTransform,
+                drive::getPose));
+        break;
+
+      default:
+        // Replayed robot, disable IO implementations0
+        drive = Drive.getInstance(
+            new GyroIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            },
+            new ModuleIO() {
+            });
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
+        }, new VisionIO() {
+        });
+        break;
+    }
     configureBindings();
 
-    // feeder.setDefaultCommand(feeder.set(0));
+    feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
@@ -95,19 +142,40 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-     // intake roller test
-      m_driverController.x().whileTrue(intakeRoller.intakeWithVoltage());
-      m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
-    m_driverController.povUp().onTrue(intakeArm.OpenIntake());
-    m_driverController.povDown().onTrue(intakeArm.CloseIntake());
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
+
+            () -> -m_driverController.getRightX() * 0.75)
+            .withName("Drive"));
+    m_driverController
+        .povUp()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(
+                    new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
+                drive)
+                .ignoringDisable(true));
+    /*
+     * // intake arm test
+     * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
+     * m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
+     */
+    /*
+     * // intake roller test
+     * m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
+     * m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
+     */
+
+    m_driverController.a().whileTrue(feeder.feed());
+    m_driverController.b().whileTrue(feeder.unfeed());
     /*
      * // shooter test
      * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
      * ));
      */
-    // shooter test
-    m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())));
-
 
   }
 

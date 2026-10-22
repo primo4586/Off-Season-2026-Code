@@ -75,9 +75,11 @@ public class Hood extends SubsystemBase {
     private final Arm hood = new Arm(hoodConfig, hoodSMC);
 
     public Hood() {
+        
     }
 
     public void updateInputs() {
+        
         m_inputs.velocity = hood.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.setpoint = hood.getMechanismSetpoint().orElse(SIM_HARD_LOW_LIMIT).in(Degrees);
         m_inputs.postision = hood.getAngle().in(Degrees);

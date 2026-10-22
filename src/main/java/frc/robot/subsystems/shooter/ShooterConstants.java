@@ -15,7 +15,7 @@ public class ShooterConstants {
         public static final int MOTOR_ID = 30; // id for main motor; note: motor must be on canivore bus
         public static final int FOLLOWER_ID = 31; // id for follower motor; note: motor must be on canivore bus
         public static final double GEARING = 27/20;
-        public static final boolean INVERTED = false;
+        public static final boolean INVERTED = true;
         public static final boolean FOLLOWER_INVERTED = false;
         public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
         public static final Distance WHEEL_CIRCUMFERENCE = Inch.of(4);
@@ -27,13 +27,13 @@ public class ShooterConstants {
         public static final AngularVelocity REST_SPEED = RPM.of(240);
 
         // REAL PID
-        public static final double REAL_KP = 0.2;
+        public static final double REAL_KP = 0.8;
         public static final double REAL_KI = 0;
         public static final double REAL_KD = 0;
         // REAL FEEDFOWARD
-        public static final double REAL_KS = 0.21606;
-        public static final double REAL_KV = 0.12316;
-        public static final double REAL_KA = 0.0080154;
+        public static final double REAL_KS = 0.33;
+        public static final double REAL_KV = 0.12;
+        public static final double REAL_KA = 0;
 
         // SIM PID
         public static final double SIM_KP = 4;
