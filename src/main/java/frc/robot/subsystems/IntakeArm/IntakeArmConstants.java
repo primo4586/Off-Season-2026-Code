@@ -28,6 +28,7 @@ public class IntakeArmConstants {
     // open and close postisions
         public static final Distance MIN_DISTANCE_MM = Millimeters.of(0); 
         public static final Distance MAX_DISTANCE_MM = Millimeters.of(311.37);
+        public static final double TRACK_ANGLE_DEGREES = Math.toRadians(-17.728380);
     //open and close with voltage
         public static final Voltage OPEN_VOLTAGE = Volts.of(1);
         public static final Voltage CLOSE_VOLTAGE = Volts.of(1);

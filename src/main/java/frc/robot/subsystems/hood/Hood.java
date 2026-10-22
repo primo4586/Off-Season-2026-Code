@@ -6,16 +6,22 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.ArmConfig;
@@ -28,6 +34,9 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import static frc.robot.subsystems.hood.HoodConstants.*;
 
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;;
 
@@ -35,13 +44,14 @@ public class Hood extends SubsystemBase {
 
     @AutoLog
     public static class HoodInputs {
-        public double velocity = 0.0; //RPM
+        public double velocity = 0.0; // RPM
         public double setpoint = 0.0;
         public double postision = 0.0;
         public Current statorCurrent = Amps.of(0.0);
         public Current supplyCurrent = Amps.of(0.0);
         public Voltage volts = Volts.of(0.0);
         public boolean isHomed = false;
+        public Pose3d componentPose = new Pose3d();
     }
 
     private final HoodInputsAutoLogged m_inputs = new HoodInputsAutoLogged();
@@ -85,8 +95,11 @@ public class Hood extends SubsystemBase {
         m_inputs.statorCurrent = hood.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = hood.getMotor().getSupplyCurrent().orElse(Amps.of(0));
         m_inputs.isHomed = isHomed;
+        m_inputs.componentPose = new Pose3d(new Translation3d(0.13,0.0,0.43), new Rotation3d(0, hood.getAngle().in(Radians), 0));
     }
+
     boolean isHomed = false;
+
     /**
      * Run the arm to the given angle, does not stop when the arm reaches the
      * setpoint.
