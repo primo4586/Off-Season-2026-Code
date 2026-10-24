@@ -1,5 +1,6 @@
 package frc.robot.primoLib;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,11 +26,16 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 public class PrimoCalc {
-  private static final Drive drive = Drive.getInstance(RobotBase.isReal());
+  private final Drive drive;
+  public PrimoCalc(Drive drive){
+    this.drive = drive;
+  }
 
   /** @return the robot's current pose as a Pose2d. */
-  public static Pose2d getRobotPose() {
+  public  Pose2d getRobotPose() {
     return drive.getPose();
   }
 
@@ -41,7 +47,7 @@ public class PrimoCalc {
    * @param angle input angle in degrees
    * @return nearest snapped angle in [0, 360]
    */
-  public static double bumpAngle(double angle) {
+  public  double bumpAngle(double angle) {
     double snapped = 45 + 90 * Math.round((angle - 45) / 90.0);
     return (snapped % 360 + 360) % 360;
   }
@@ -49,7 +55,7 @@ public class PrimoCalc {
   /**
    * @return hub coordinates as a pose3d
    */
-  public static Pose3d getHubPos() {
+  public  Pose3d getHubPos() {
     return DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Blue
             ? new Pose3d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84),
@@ -61,7 +67,7 @@ public class PrimoCalc {
   /**
    * @return get distance in meters from robot to ds wall
    */
-  public static DoubleSupplier getDistanceFromDSWall() {
+  public  DoubleSupplier getDistanceFromDSWall() {
     return () -> DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Blue
             ? getRobotPose().getTranslation().getX()
@@ -69,30 +75,30 @@ public class PrimoCalc {
   }
 
   // returns the direction the robot should be facing to face the ds wall
-  public static Rotation2d getRotToDsWall() {
+  public  Rotation2d getRotToDsWall() {
     return DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Blue
             ? new Rotation2d(Math.PI)
             : new Rotation2d();
   }
 
-  public static BooleanSupplier pastMiddle() {
+  public  BooleanSupplier pastMiddle() {
     return () -> getDistanceFromDSWall().getAsDouble() > 8.5;
   }
 
   // pass values
-  public static DoubleSupplier shooterPassVel(double closerThanMidRPS, double furtherThanMidRPS) {
+  public  DoubleSupplier shooterPassVel(double closerThanMidRPS, double furtherThanMidRPS) {
     return () -> pastMiddle().getAsBoolean() ? furtherThanMidRPS : closerThanMidRPS;
   }
 
-  public static DoubleSupplier hoodPassPos(double closerThanMidPos, double furtherThanMidPos) {
+  public  DoubleSupplier hoodPassPos(double closerThanMidPos, double furtherThanMidPos) {
     return () -> pastMiddle().getAsBoolean() ? furtherThanMidPos : closerThanMidPos;
   }
 
   /**
    * @return the angle the robot needs to be to point at the hub, on radians.
    */
-  public static double getRadsToHub() {
+  public  double getRadsToHub() {
     return drive
         .getPose()
         .getTranslation()
@@ -107,7 +113,7 @@ public class PrimoCalc {
    * @return returns the angle the robot needs to be to point at a given pose, in
    *         radians.
    */
-  public static double getRadsToPose(Pose2d targetPose) {
+  public  double getRadsToPose(Pose2d targetPose) {
     return drive
         .getPose()
         .getTranslation()
@@ -120,22 +126,27 @@ public class PrimoCalc {
   /**
    * Checks if the robot is facing the hub within a certain threshold.
    */
-  public static BooleanSupplier isFacingHub() {
-    return () -> Math.abs(getRadsToHub() - drive.getRotation().getRadians()) < Constants.HUB_ANGLE_RADS_THRESHOLD;
-  }
+public BooleanSupplier isFacingHub() {
+    return () -> {
+        double targetAngle = getRadsToHub();
+        double currentAngle = drive.getRotation().getRadians();
+        double error = MathUtil.angleModulus(targetAngle - currentAngle);
+        return Math.abs(error) < Constants.HUB_ANGLE_RADS_THRESHOLD;
+    };
+}
 
-  public static double getDistance(Pose2d a, Pose3d b) {
+  public  double getDistance(Pose2d a, Pose3d b) {
     return a.getTranslation().getDistance(b.toPose2d().getTranslation());
   }
 
-  public static double interplateFromHub(ExterpolationMap interplationMap) {
+  public  double interplateFromHub(ExterpolationMap interplationMap) {
     return interplationMap.exterpolate(getDistance(drive.getPose(), getHubPos()));
   }
 
-  public static Supplier<AngularVelocity> interplateShooter() {
+  public  Supplier<AngularVelocity> interplateShooter() {
     return () -> RotationsPerSecond.of(interplateFromHub(InterpolationMaps.SHOOTER_INTERPOLATION_MAP));
   }
-  public static Supplier<Angle> interplateHood(){
+  public  Supplier<Angle> interplateHood(){
     return () -> Rotations.of(interplateFromHub(InterpolationMaps.HOOD_ANGLE_INTERPOLATION_MAP));
   }
 }

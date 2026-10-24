@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.feeder.Feeder;
@@ -52,7 +53,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.CommandGroupFactory;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.SimCommandGroupFactory;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -70,8 +73,11 @@ public class RobotContainer {
   private final IntakeArm intakeArm;
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
+  private final Feeder feeder = new Feeder();
   private final Drive drive;
   private final Vision vision;
+  private final CommandGroupFactory commandGroupFactory;
+  private SimCommandGroupFactory simCommandGroupFactory;
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
@@ -90,6 +96,7 @@ public class RobotContainer {
     // Configure the trigger bindings
     SmartDashboard.putNumber("shooter calibration RPM", 100);
     SmartDashboard.putNumber("hood angle rotations", 10);
+    IntakeArmSim intakeArmSim = null;
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -124,7 +131,8 @@ public class RobotContainer {
             new VisionIOPhotonVisionSim(
                 VisionConstants.camera0Name, VisionConstants.robotToCamera0,
                 driveSimulation::getSimulatedDriveTrainPose));
-        intakeArm = new IntakeArmSim(driveSimulation);
+        intakeArmSim = new IntakeArmSim(driveSimulation);
+        intakeArm = intakeArmSim;
         break;
 
       default:
@@ -153,11 +161,22 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("intake", intakeRoller.intake());
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-    configureBindings();
 
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
+    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter,
+        () -> -m_driverController.getLeftY(), () -> -m_driverController.getLeftX());
+    simCommandGroupFactory = null;
+
+    if (Constants.currentMode == Mode.SIM) {
+    simCommandGroupFactory =
+        new SimCommandGroupFactory(drive, commandGroupFactory, intakeArmSim);
+
+    m_driverController.y().whileTrue(simCommandGroupFactory.shootSim());
+}
+    configureBindings();
+
   }
 
   /**
@@ -191,6 +210,7 @@ public class RobotContainer {
     m_driverController.povDown().onTrue(intakeArm.CloseIntake());
     m_driverController.povRight().whileTrue(hood.resetHood());
     m_driverController.a().whileTrue(hood.run(Degrees.of(15)));
+    m_driverController.y().whileTrue(simCommandGroupFactory.shootSim());
     /*
      * // shooter test
      * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
@@ -237,6 +257,6 @@ public class RobotContainer {
         .getGamePiecesArrayByType("Fuel");
     // Publish to telemetry using AdvantageKit
     Logger.recordOutput("FieldSimulation/FuelPositions", fuelPoses);
-    
+
   }
 }

@@ -2,8 +2,12 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.RPM;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -36,6 +40,7 @@ public class CommandGroupFactory {
     private final DoubleSupplier driveXSupplier;
     private final DoubleSupplier driveYSupplier;
 
+    public final PrimoCalc primoCalc;
     /**
      * creates commandgroup factory powered by the given subsystems
      * NOTE: create after adding defualtcommands!
@@ -62,6 +67,8 @@ public class CommandGroupFactory {
 
         this.driveXSupplier = driveXSupplier;
         this.driveYSupplier = driveYSupplier;
+
+        primoCalc = new PrimoCalc(drive);
     }
 
     /**
@@ -69,11 +76,14 @@ public class CommandGroupFactory {
      */
     public Command interplateShooterAndHood() {
         return Commands.parallel(
-                shooter.run(PrimoCalc.interplateShooter()),
-                hood.run(PrimoCalc.interplateHood()));
+                shooter.run(primoCalc.interplateShooter()),
+                hood.run(primoCalc.interplateHood()));
 
     }
-
+    
+    public BooleanSupplier isReadyToShoot(boolean facehub){
+        return  ()->(primoCalc.isFacingHub().getAsBoolean() || !facehub) && shooter.isReady().getAsBoolean();
+    } 
     /**
      * faces robot towards hub(if facehub == true), interplates shooter and hood,
      * activates feeder, and start opening and closing intake intake in order to
@@ -87,18 +97,14 @@ public class CommandGroupFactory {
         return Commands.parallel(
                 Commands.sequence(
                         Commands.race(
-                                Commands.waitUntil(() -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub) // checks
-                                                                                                              // if
-                                                                                                              // facing
-                                                                                                              // hub
-                                        && shooter.isReady().getAsBoolean()),
+                                Commands.waitUntil(isReadyToShoot(facehub)),
                                 Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
                         feeder.feed()),
                 interplateShooterAndHood(),
                 intakeArm.OpenAndCloseIntake(), // push fuels into feeder
                 DriveCommands.joystickDriveAtAngle(
                         drive, () -> driveXSupplier.getAsDouble(), () -> driveYSupplier.getAsDouble(),
-                        () -> new Rotation2d(PrimoCalc.getRadsToHub())).onlyIf(() -> facehub)); // look towards hub only
+                        () -> new Rotation2d(primoCalc.getRadsToHub())).onlyIf(() -> facehub)); // look towards hub only
                                                                                                 // if facehub == true
     }
 

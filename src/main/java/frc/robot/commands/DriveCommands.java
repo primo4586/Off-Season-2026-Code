@@ -286,4 +286,31 @@ public class DriveCommands {
     Rotation2d lastAngle = new Rotation2d();
     double gyroDelta = 0.0;
   }
+  public static Command cameraRelativeDrive(
+    Drive drive,
+    DoubleSupplier xSupplier,
+    DoubleSupplier ySupplier,
+    DoubleSupplier omegaSupplier,
+    Supplier<Rotation2d> cameraHeadingSupplier) {
+  
+  return Commands.run(() -> {
+    // 1. Get raw joystick inputs (apply deadbands/squaring as normal)
+    double xLinear = xSupplier.getAsDouble();
+    double yLinear = ySupplier.getAsDouble();
+    double omega = omegaSupplier.getAsDouble();
+
+    // 2. Compute the offset between the camera view and the field
+    // If the camera points backward or at an angle, subtract or add its rotation
+    Rotation2d reference = cameraHeadingSupplier.get();
+    Rotation2d adjustedHeading = drive.getRotation().minus(reference);
+
+    // 3. Convert to field/camera-relative chassis speeds
+    ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        xLinear, yLinear, omega, adjustedHeading);
+
+    // 4. Send to drive subsystem
+    drive.runVelocity(fieldSpeeds);
+  }, drive);
+}
+
 }

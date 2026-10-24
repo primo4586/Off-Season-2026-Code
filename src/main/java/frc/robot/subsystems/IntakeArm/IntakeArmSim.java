@@ -21,6 +21,7 @@ public class IntakeArmSim extends IntakeArm {
     private final IntakeArm intakeArm;
     private final AbstractDriveTrainSimulation drivetrain;
 
+
     public IntakeArmSim(AbstractDriveTrainSimulation driveTrain) {
         intakeArm = new IntakeArm();
         this.drivetrain = driveTrain;
@@ -34,7 +35,7 @@ public class IntakeArmSim extends IntakeArm {
                 // The extension length of the intake beyond the robot's frame (when activated)
                 Millimeters.of(311.37),
                 // The intake is mounted on the back side of the chassis
-                IntakeSimulation.IntakeSide.BACK,
+                IntakeSimulation.IntakeSide.FRONT,
                 // The intake can hold up to 100 fuels
                 100);
     }
@@ -52,21 +53,26 @@ public class IntakeArmSim extends IntakeArm {
             intakeSimulation.stopIntake();
         }).andThen(intakeArm.CloseIntake());
     }
-
+    public int getFuelCount(){
+        return intakeSimulation.getGamePiecesAmount();
+    }
+    public void removeFuel(int count){
+        intakeSimulation.setGamePiecesCount(intakeSimulation.getGamePiecesAmount()-count);
+    }
     public void updateFuelVisualization(Pose3d robotPose) {
         int count = intakeSimulation.getGamePiecesAmount();
 
-        // Example hopper arrangement: up to 10 visible balls.
-        int visibleCount = Math.min(count, 10);
+        // Example hopper arrangement: up to 100 visible balls.
+        int visibleCount = Math.min(count, 4 * 4 * 3);
         Pose3d[] fuelPoses = new Pose3d[visibleCount];
 
         for (int i = 0; i < visibleCount; i++) {
-            int layer = i / 4;
-            int slot = i % 4;
+            int layer = i / 16;
+            int slot = i % 16;
 
-            double x = -0.2 + (slot % 2) * 0.14;
-            double y =-0.1 + (slot / 2) * 0.14;
-            double z = 0.2 + layer * 0.13;
+            double x = 0.1 + (slot % 4) * 0.14;
+            double y = -0.2 + (slot / 4) * 0.14;
+            double z = 0.5 + layer * -0.13;
 
             Transform3d offset = new Transform3d(
                     new Translation3d(x, y, z),
