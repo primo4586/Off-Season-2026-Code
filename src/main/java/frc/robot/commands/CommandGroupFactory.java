@@ -65,13 +65,16 @@ public class CommandGroupFactory {
     }
 
     /**
-     * @return command that causes shooter and hood to interplate based on distance from hub
+     * @return command that causes shooter and hood to interplate based on distance
+     *         
+     *         from hub
      */
-    public Command interplateShooterAndHood() {
-        return Commands.parallel(
-                shooter.run(PrimoCalc.interplateShooter()),
-                hood.run(PrimoCalc.interplateHood()));
+    public Command interplateShooter() {
+        return shooter.run(PrimoCalc.interplateShooter());
+    }
 
+    public Command interplateHood() {
+        return hood.run(PrimoCalc.interplateHood());
     }
 
     /**
@@ -87,14 +90,11 @@ public class CommandGroupFactory {
         return Commands.parallel(
                 Commands.sequence(
                         Commands.race(
-                                Commands.waitUntil(() -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub) // checks
-                                                                                                              // if
-                                                                                                              // facing
-                                                                                                              // hub
+                                Commands.waitUntil(() -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub)
                                         && shooter.isReady().getAsBoolean()),
                                 Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
                         feeder.feed()),
-                interplateShooterAndHood(),
+                interplateHood(),
                 intakeArm.OpenAndCloseIntake(), // push fuels into feeder
                 DriveCommands.joystickDriveAtAngle(
                         drive, () -> driveXSupplier.getAsDouble(), () -> driveYSupplier.getAsDouble(),
@@ -110,9 +110,7 @@ public class CommandGroupFactory {
     public Command shoot() {
         return Commands.parallel(
                 prepareToShoot(true),
-                shooter.shoot()
-
-        );
+              interplateShooter());
     }
 
     /**
@@ -136,8 +134,8 @@ public class CommandGroupFactory {
         return Commands.parallel(
                 feeder.feed(),
                 intakeArm.OpenAndCloseIntake(), // push balls into feeder
-                interplateShooterAndHood(),
-                shooter.shoot());
+                interplateHood(),
+                interplateShooter());
     }
 
     /**
@@ -163,7 +161,6 @@ public class CommandGroupFactory {
                 intakeArm.set(0),
                 intakeRoller.set(0),
                 shooter.run(RPM.of(0)));
-
     }
 
     /**

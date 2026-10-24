@@ -125,8 +125,7 @@ public class RobotContainer {
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
-    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter, shooterRPM,
-        hoodAngle);
+    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter, () -> -m_driverController.getLeftY(),() -> -m_driverController.getLeftX());
     configureBindings();
 
   }
