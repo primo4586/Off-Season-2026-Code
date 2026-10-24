@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.primoLib.Elastic;
 import frc.robot.util.LocalADStarAK;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -35,7 +34,6 @@ public class Robot extends LoggedRobot {
    * initialization code.
    */
   public Robot() {
-    Elastic.displayField();
     RobotController.setBrownoutVoltage(6.3);
     SmartDashboard.putData("CommandScheduler", CommandScheduler.getInstance());
     // Record metadata
@@ -104,13 +102,14 @@ public class Robot extends LoggedRobot {
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
     SmartDashboard.putData("CommandScheduler", CommandScheduler.getInstance());
-    Elastic.displayAll();
     m_robotContainer.periodic();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    m_robotContainer.resetSimulation();
+  }
 
   @Override
   public void disabledPeriodic() {}
@@ -118,6 +117,13 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    m_robotContainer.resetHood();
+
+    // schedule the autonomous command (example)
+    if (m_autonomousCommand != null) {
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    }
   }
 
   /** This function is called periodically during autonomous. */
@@ -156,6 +162,6 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
-    
+    m_robotContainer.updateSimulation();
   }
 }

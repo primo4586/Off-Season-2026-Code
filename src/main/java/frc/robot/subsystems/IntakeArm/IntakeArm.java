@@ -186,6 +186,7 @@ public class IntakeArm extends SubsystemBase {
         return arm.set(dutycycle);
     }
 
+
     @Override
     public void periodic() {
         updateInputs();
