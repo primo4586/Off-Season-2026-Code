@@ -23,8 +23,8 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-
 
 import org.littletonrobotics.junction.AutoLog;
 
@@ -36,7 +36,7 @@ public class Shooter extends SubsystemBase {
     public static class ShooterInputs {
         public double angularVelocity = 0.0; // RPM
         public LinearAcceleration acceleration = MetersPerSecondPerSecond.of(0);
-        public double setpoint = 0.0; //RPM
+        public double setpoint = 0.0; // RPM
         public Voltage volts = Volts.of(0);
         public Current statorcurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -186,6 +186,10 @@ public class Shooter extends SubsystemBase {
      */
     public Command stop() {
         return shooter.set(0);
+    }
+
+    public BooleanSupplier isReady() {
+        return () -> getVelocity().in(RPM) >= MINMIUM_SHOOTING_SPEED.in(RPM);
     }
 
     @Override

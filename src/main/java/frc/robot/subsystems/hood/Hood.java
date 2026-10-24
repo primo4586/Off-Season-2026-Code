@@ -112,6 +112,16 @@ public class Hood extends SubsystemBase {
     public Command run(Angle angle) {
         return hood.run(angle);
     }
+        /**
+     * Run the arm to the given angle, does not stop when the arm reaches the
+     * setpoint.
+     * 
+     * @param angle Angle to go to.
+     * @return A command.
+     */
+    public Command run(Supplier<Angle> angle) {
+        return hood.run(angle);
+    }
 
     /**
      * Run the arm to the given angle, ends the command when the arm reaches the

@@ -5,15 +5,25 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
+import frc.robot.Constants.InterpolationMaps;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.hood.HoodConstants;
 import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.util.interpolation.ExterpolationMap;
+import frc.robot.util.interpolation.InterpolationMap;
+
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 public class PrimoCalc {
   private static final Drive drive = Drive.getInstance(RobotBase.isReal());
@@ -24,7 +34,8 @@ public class PrimoCalc {
   }
 
   /**
-   * Snaps an angle to the nearest value of the form 45 + 90k and normalizes the result to the range
+   * Snaps an angle to the nearest value of the form 45 + 90k and normalizes the
+   * result to the range
    * [0, 360].
    *
    * @param angle input angle in degrees
@@ -40,42 +51,42 @@ public class PrimoCalc {
    */
   public static Pose3d getHubPos() {
     return DriverStation.getAlliance().isPresent()
-            && DriverStation.getAlliance().get() == Alliance.Blue
-        ? new Pose3d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84),
+        && DriverStation.getAlliance().get() == Alliance.Blue
+            ? new Pose3d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84),
                 Units.inchesToMeters(72), Rotation3d.kZero)
-        : new Pose3d(11.912, Units.inchesToMeters(158.84),
-        Units.inchesToMeters(72), Rotation3d.kZero);
+            : new Pose3d(11.912, Units.inchesToMeters(158.84),
+                Units.inchesToMeters(72), Rotation3d.kZero);
   }
 
-    /**
+  /**
    * @return get distance in meters from robot to ds wall
    */
   public static DoubleSupplier getDistanceFromDSWall() {
-    return ()-> DriverStation.getAlliance().isPresent()
-            && DriverStation.getAlliance().get() == Alliance.Blue
-        ? getRobotPose().getTranslation().getX()
-        : 16.5 - getRobotPose().getTranslation().getX();
+    return () -> DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Blue
+            ? getRobotPose().getTranslation().getX()
+            : 16.5 - getRobotPose().getTranslation().getX();
   }
 
-  //returns the direction the robot should be facing to face the ds wall
-  public static Rotation2d getRotToDsWall(){
-        return DriverStation.getAlliance().isPresent()
-            && DriverStation.getAlliance().get() == Alliance.Blue
-        ? new Rotation2d(Math.PI)
-        : new Rotation2d();
+  // returns the direction the robot should be facing to face the ds wall
+  public static Rotation2d getRotToDsWall() {
+    return DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Blue
+            ? new Rotation2d(Math.PI)
+            : new Rotation2d();
   }
 
-  public static BooleanSupplier pastMiddle(){
+  public static BooleanSupplier pastMiddle() {
     return () -> getDistanceFromDSWall().getAsDouble() > 8.5;
   }
 
-  //pass values
-  public static DoubleSupplier shooterPassVel(double closerThanMidRPS, double furtherThanMidRPS){
-    return ()-> pastMiddle().getAsBoolean() ? furtherThanMidRPS : closerThanMidRPS;
+  // pass values
+  public static DoubleSupplier shooterPassVel(double closerThanMidRPS, double furtherThanMidRPS) {
+    return () -> pastMiddle().getAsBoolean() ? furtherThanMidRPS : closerThanMidRPS;
   }
 
-  public static DoubleSupplier hoodPassPos(double closerThanMidPos, double furtherThanMidPos){
-  return ()-> pastMiddle().getAsBoolean() ? furtherThanMidPos : closerThanMidPos;
+  public static DoubleSupplier hoodPassPos(double closerThanMidPos, double furtherThanMidPos) {
+    return () -> pastMiddle().getAsBoolean() ? furtherThanMidPos : closerThanMidPos;
   }
 
   /**
@@ -83,44 +94,48 @@ public class PrimoCalc {
    */
   public static double getRadsToHub() {
     return drive
-            .getPose()
-            .getTranslation()
-            .minus(getHubPos().toPose2d().getTranslation())
-            .getAngle()
-            .getRadians()
+        .getPose()
+        .getTranslation()
+        .minus(getHubPos().toPose2d().getTranslation())
+        .getAngle()
+        .getRadians()
         + Math.PI;
   }
 
   /**
    * @param targetPose the pose to point at
-   * @return returns the angle the robot needs to be to point at a given pose, in radians.
+   * @return returns the angle the robot needs to be to point at a given pose, in
+   *         radians.
    */
   public static double getRadsToPose(Pose2d targetPose) {
     return drive
-            .getPose()
-            .getTranslation()
-            .minus(targetPose.getTranslation())
-            .getAngle()
-            .getRadians()
+        .getPose()
+        .getTranslation()
+        .minus(targetPose.getTranslation())
+        .getAngle()
+        .getRadians()
         + Math.PI;
   }
 
-/**
- * Checks if the robot is facing the hub within a certain threshold.
- */
+  /**
+   * Checks if the robot is facing the hub within a certain threshold.
+   */
   public static BooleanSupplier isFacingHub() {
-    return () ->
-        Math.abs(getRadsToHub() - drive.getRotation().getRadians())
-            < Constants.HUB_ANGLE_RADS_THRESHOLD;
+    return () -> Math.abs(getRadsToHub() - drive.getRotation().getRadians()) < Constants.HUB_ANGLE_RADS_THRESHOLD;
   }
 
   public static double getDistance(Pose2d a, Pose3d b) {
     return a.getTranslation().getDistance(b.toPose2d().getTranslation());
   }
 
+  public static double interplateFromHub(ExterpolationMap interplationMap) {
+    return interplationMap.exterpolate(getDistance(drive.getPose(), getHubPos()));
+  }
 
-
-
-
-  
+  public static Supplier<AngularVelocity> interplateShooter() {
+    return () -> RotationsPerSecond.of(interplateFromHub(InterpolationMaps.SHOOTER_INTERPOLATION_MAP));
+  }
+  public static Supplier<Angle> interplateHood(){
+    return () -> Rotations.of(interplateFromHub(InterpolationMaps.HOOD_ANGLE_INTERPOLATION_MAP));
+  }
 }

@@ -25,7 +25,7 @@ public class ShooterConstants {
         public static final AngularVelocity SHOOT_SPEED = RPM.of(20);
         public static final AngularVelocity PASS_SPEED = RPM.of(20);
         public static final AngularVelocity REST_SPEED = RPM.of(240);
-
+        public static final AngularVelocity MINMIUM_SHOOTING_SPEED = RPM.of(200);
         // REAL PID
         public static final double REAL_KP = 0.8;
         public static final double REAL_KI = 0;

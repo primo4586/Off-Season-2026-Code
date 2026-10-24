@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.CommandGroupFactory;
 import frc.robot.commands.DriveCommands;
 
 /**
@@ -52,11 +53,12 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Feeder feeder = new Feeder();
   private final Hood hood = new Hood();
-  // private final IntakeArm intakeArm = new IntakeArm();
+  private final IntakeArm intakeArm = new IntakeArm();
   private final Shooter shooter = new Shooter();
   private final IntakeRoller intakeRoller = new IntakeRoller();
   private final Drive drive;
   private final Vision vision;
+  private final CommandGroupFactory commandGroupFactory;
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
@@ -119,12 +121,14 @@ public class RobotContainer {
         });
         break;
     }
-    configureBindings();
-
     feeder.setDefaultCommand(feeder.set(0));
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
+    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter, shooterRPM,
+        hoodAngle);
+    configureBindings();
+
   }
 
   /**
