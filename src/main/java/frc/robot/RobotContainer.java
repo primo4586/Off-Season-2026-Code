@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.TunerConstants;
+import frc.robot.primoLib.PrimoCalc;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.hood.Hood;
 
@@ -20,6 +21,7 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
 import java.util.function.DoubleSupplier;
@@ -125,7 +127,8 @@ public class RobotContainer {
     hood.setDefaultCommand(hood.set(0));
     shooter.setDefaultCommand(shooter.run(REST_SPEED));
     intakeRoller.setDefaultCommand(intakeRoller.set(0));
-    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter, () -> -m_driverController.getLeftY(),() -> -m_driverController.getLeftX());
+    commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter,
+        () -> -m_driverController.getLeftY(), () -> -m_driverController.getLeftX());
     configureBindings();
 
   }
@@ -145,6 +148,17 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+
+    m_driverController.rightTrigger().whileTrue(commandGroupFactory.shoot());
+    m_driverController.rightBumper().whileTrue(commandGroupFactory.closeShoot(RotationsPerSecond.of(57.75)));
+    m_driverController.leftTrigger().whileTrue(commandGroupFactory.pass());
+    m_driverController.povRight().whileTrue(intakeRoller.intake());
+    m_driverController.y().whileTrue(intakeRoller.outake());
+    m_driverController.x().whileTrue(intakeArm.CloseIntake());
+    m_driverController.b().onTrue(intakeArm.OpenIntake());
+    m_driverController.a().whileTrue(hood.resetHood());
+    m_driverController.povLeft().whileTrue(feeder.unfeed());
+    // normal movment
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
@@ -154,6 +168,27 @@ public class RobotContainer {
             () -> -m_driverController.getRightX() * 0.75)
             .withName("Drive"));
     m_driverController
+        .rightStick()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -m_driverController.getLeftY(),
+                () -> -m_driverController.getLeftX(),
+                () -> new Rotation2d(
+                    Math.toRadians(PrimoCalc.bumpAngle(drive.getRotation().getDegrees()))))
+                .withName("Drive At Angle"));
+    // Drive towards ds wall
+    m_driverController
+        .povDown()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -m_driverController.getLeftY(),
+                () -> -m_driverController.getLeftX(),
+                () -> PrimoCalc.getRotToDsWall())
+                .withName("Drive At Angle"));
+    // gyro reset
+    m_driverController
         .povUp()
         .onTrue(
             Commands.runOnce(
@@ -161,24 +196,6 @@ public class RobotContainer {
                     new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Math.PI))),
                 drive)
                 .ignoringDisable(true));
-    /*
-     * // intake arm test
-     * m_driverController.a().whileTrue(intakeArm.openWithVoltage());
-     * m_driverController.b().whileTrue(intakeArm.closeWithVoltage());
-     */
-    /*
-     * // intake roller test
-     * m_driverController.a().whileTrue(intakeRoller.intakeWithVoltage());
-     * m_driverController.b().whileTrue(intakeRoller.outakeWithVoltage());
-     */
-
-    m_driverController.a().whileTrue(feeder.feed());
-    m_driverController.b().whileTrue(feeder.unfeed());
-    /*
-     * // shooter test
-     * m_driverController.a().whileTrue(shooter.run(RPM.of(shooterRPM.getAsDouble())
-     * ));
-     */
 
   }
 

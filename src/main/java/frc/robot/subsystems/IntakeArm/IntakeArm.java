@@ -95,9 +95,9 @@ public class IntakeArm extends SubsystemBase {
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
         m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));
-        double totalExtensionMeters = -(m_inputs.position / 1000.0); 
+        double totalExtensionMeters = (m_inputs.position / 1000.0); 
         double deltaX = totalExtensionMeters * Math.cos(TRACK_ANGLE_DEGREES);
-        double deltaZ = -totalExtensionMeters * Math.sin(TRACK_ANGLE_DEGREES);
+        double deltaZ = totalExtensionMeters * Math.sin(TRACK_ANGLE_DEGREES);
                 m_inputs.componentPose = new Pose3d(
             new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
             new Rotation3d()                        // No rotation
