@@ -2,7 +2,7 @@ package frc.robot.subsystems.feeder;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.CanIdManager;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -29,36 +29,48 @@ public class Feeder extends SubsystemBase {
     @AutoLog
     public static class FeederInputs {
 
-        public double velocity = 0.0; //RPM
+        public double velocity = 0.0; // RPM
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
     }
 
-    private final FeederInputsAutoLogged m_inputs = new FeederInputsAutoLogged();
-    private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-            .withMechanismCircumference(FEEDER_CIRCUMFRANCE)
-            .withControlMode(CONTROL_MODE)
-            // Feedback Constants (PID Constants)
-            .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
-            .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
-            // Feedforward Constants
-            .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
-            .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
-            // Telemetry name and verbosity level
-            .withTelemetry("FeederMotor", MOTOR_VERBOSITY)
-            .withGearing(GEARING)
-            .withMotorInverted(INVERTED)
-            .withIdleMode(NEUTRAL_MODE)
-            .withStatorCurrentLimit(STATOR_LIMIT)
-            .withSupplyCurrentLimit(SUPPLY_LIMIT);
+    private final FeederInputsAutoLogged m_inputs;
+    private SmartMotorControllerConfig smcConfig;
+    private SmartMotorController motor;
+    private final FlyWheelConfig feederConfig;
+    private FlyWheel feeder;
+    private final int id;
+    private TalonFX talonFX;
 
-    private TalonFX talonFX = new TalonFX(MOTOR_ID);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
-    private final FlyWheelConfig feederConfig = new FlyWheelConfig()
-            .withDiameter(Inches.of(2))
-            .withTelemetry("Feeder", MECHANISM_VERBOSITY);
-    private FlyWheel feeder = new FlyWheel(feederConfig, motor);
+    public Feeder(int id, String name) {
+        super(name);
+        this.id = id;
+        m_inputs = new FeederInputsAutoLogged();
+        smcConfig = new SmartMotorControllerConfig(this)
+                .withMechanismCircumference(FEEDER_CIRCUMFRANCE)
+                .withControlMode(CONTROL_MODE)
+                // Feedback Constants (PID Constants)
+                .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
+                .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
+                // Feedforward Constants
+                .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
+                .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
+                // Telemetry name and verbosity level
+                .withTelemetry("FeederMotor" + String.valueOf(id), MOTOR_VERBOSITY)
+                .withGearing(GEARING)
+                .withMotorInverted(INVERTED)
+                .withIdleMode(NEUTRAL_MODE)
+                .withStatorCurrentLimit(STATOR_LIMIT)
+                .withSupplyCurrentLimit(SUPPLY_LIMIT);
+
+        talonFX = new TalonFX(CanIdManager.get(id,MOTOR_ID));
+        motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
+        feederConfig = new FlyWheelConfig()
+                .withDiameter(Inches.of(2))
+                .withTelemetry("Feeder" + String.valueOf(id), MECHANISM_VERBOSITY);
+        feeder = new FlyWheel(feederConfig, motor);
+    }
 
     private void updateInputs() {
         m_inputs.velocity = feeder.getMotor().getMechanismVelocity().in(RPM);
@@ -149,7 +161,7 @@ public class Feeder extends SubsystemBase {
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("Feeder", m_inputs);
+        Logger.processInputs("Feeder"+String.valueOf(id), m_inputs);
         feeder.updateTelemetry();
     }
 

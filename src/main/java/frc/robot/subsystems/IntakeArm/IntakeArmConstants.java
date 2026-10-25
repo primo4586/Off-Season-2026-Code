@@ -21,7 +21,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 //TODO: recalibrate based on new intake when new intake avaiable
 public class IntakeArmConstants {
     //important
-    public static final int MOTOR_ID = 21;
+    public static final int MOTOR_ID = 3;
     public static final Mass CARRIAGE_WEIGHT = Grams.of(8802.11);
     public static final Distance CIRCUMFERENCE = Inches.of(5.875).times(Math.PI);
     //Locations

@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CanIdManager;
 import frc.robot.Constants;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -42,32 +43,42 @@ public class Shooter extends SubsystemBase {
         public Current supplyCurrent = Amps.of(0);
     }
 
-    private final ShooterInputsAutoLogged m_inputs = new ShooterInputsAutoLogged();
-    @SuppressWarnings("removal")
-    private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-            .withMechanismCircumference(WHEEL_CIRCUMFERENCE)
-            .withControlMode(CONTROL_MODE)
-            // Feedback Constants (PID Constants)
-            .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
-            .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
-            // Feedforward Constants
-            .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
-            .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
-            // Telemetry name and verbosity level
-            .withTelemetry("ShooterMotor", MOTOR_VERBOSITY)
-            .withGearing(GEARING)
-            .withMotorInverted(INVERTED)
-            .withIdleMode(NEUTRAL_MODE)
-            .withStatorCurrentLimit(STATOR_LIMIT)
-            .withSupplyCurrentLimit(SUPPLY_LIMIT)
-            .withFollowers(Pair.of(new TalonFX(FOLLOWER_ID, Constants.CAN_BUS_NAME), FOLLOWER_INVERTED));
-    @SuppressWarnings("removal")
-    private TalonFX talonFX = new TalonFX(MOTOR_ID, Constants.CAN_BUS_NAME);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(2), smcConfig);
-    private final FlyWheelConfig shooterConfig = new FlyWheelConfig()
-            .withDiameter(Inches.of(2))
-            .withTelemetry("Shooter", MECHANISM_VERBOSITY);
-    private FlyWheel shooter = new FlyWheel(shooterConfig, motor);
+    private final ShooterInputsAutoLogged m_inputs;
+    private final SmartMotorControllerConfig smcConfig;
+    private final TalonFX talonFX;
+    private final SmartMotorController motor;
+    private final FlyWheelConfig shooterConfig;
+    private final FlyWheel shooter;
+    private final int id;
+
+    public Shooter(int id, String name) {
+        super(name);
+        this.id = id;
+        m_inputs = new ShooterInputsAutoLogged();
+        smcConfig = new SmartMotorControllerConfig(this)
+                .withMechanismCircumference(WHEEL_CIRCUMFERENCE)
+                .withControlMode(CONTROL_MODE)
+                // Feedback Constants (PID Constants)
+                .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
+                .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
+                // Feedforward Constants
+                .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
+                .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
+                // Telemetry name and verbosity level
+                .withTelemetry("ShooterMotor" + String.valueOf(id), MOTOR_VERBOSITY)
+                .withGearing(GEARING)
+                .withMotorInverted(INVERTED)
+                .withIdleMode(NEUTRAL_MODE)
+                .withStatorCurrentLimit(STATOR_LIMIT)
+                .withSupplyCurrentLimit(SUPPLY_LIMIT)
+                .withFollowers(Pair.of(new TalonFX(FOLLOWER_ID, Constants.CAN_BUS_NAME), FOLLOWER_INVERTED));
+        talonFX = new TalonFX(CanIdManager.get(id,MOTOR_ID), Constants.CAN_BUS_NAME);
+        motor = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(2), smcConfig);
+        shooterConfig = new FlyWheelConfig()
+                .withDiameter(Inches.of(2))
+                .withTelemetry("Shooter" + String.valueOf(id), MECHANISM_VERBOSITY);
+        shooter = new FlyWheel(shooterConfig, motor);
+    }
 
     private void updateInputs() {
         m_inputs.angularVelocity = shooter.getSpeed().in(RPM);
@@ -196,7 +207,7 @@ public class Shooter extends SubsystemBase {
     public void periodic() {
         shooter.updateTelemetry();
         updateInputs();
-        Logger.processInputs("Shooter", m_inputs);
+        Logger.processInputs("Shooter"+String.valueOf(id), m_inputs);
     }
 
     @Override

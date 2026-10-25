@@ -22,7 +22,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
 public class HoodConstants {
 
-    public static final int MOTOR_ID = 33;
+    public static final int MOTOR_ID = 2;
 
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;

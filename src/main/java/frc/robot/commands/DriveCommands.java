@@ -286,31 +286,66 @@ public class DriveCommands {
     Rotation2d lastAngle = new Rotation2d();
     double gyroDelta = 0.0;
   }
-  public static Command cameraRelativeDrive(
+public static Command cameraRelativeDrive(
     Drive drive,
     DoubleSupplier xSupplier,
     DoubleSupplier ySupplier,
     DoubleSupplier omegaSupplier,
-    Supplier<Rotation2d> cameraHeadingSupplier) {
-  
+    Supplier<Rotation2d> viewHeading,
+    Supplier<Rotation2d> robotHeading) {
+
   return Commands.run(() -> {
-    // 1. Get raw joystick inputs (apply deadbands/squaring as normal)
-    double xLinear = xSupplier.getAsDouble();
-    double yLinear = ySupplier.getAsDouble();
-    double omega = omegaSupplier.getAsDouble();
+    Translation2d stick = getLinearVelocityFromJoysticks(
+        xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
-    // 2. Compute the offset between the camera view and the field
-    // If the camera points backward or at an angle, subtract or add its rotation
-    Rotation2d reference = cameraHeadingSupplier.get();
-    Rotation2d adjustedHeading = drive.getRotation().minus(reference);
+    // Stick -> field frame: "up" on stick = away from the camera
+    Translation2d fieldVel = stick.rotateBy(viewHeading.get());
 
-    // 3. Convert to field/camera-relative chassis speeds
-    ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        xLinear, yLinear, omega, adjustedHeading);
+    double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+    omega = Math.copySign(omega * omega, omega);
 
-    // 4. Send to drive subsystem
-    drive.runVelocity(fieldSpeeds);
+    ChassisSpeeds fieldSpeeds = new ChassisSpeeds(
+        fieldVel.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+        fieldVel.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+        omega * drive.getMaxAngularSpeedRadPerSec());
+
+    // Field -> robot frame using the robot's actual heading
+    drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(fieldSpeeds, robotHeading.get()));
   }, drive);
 }
+/**
+ * Stick translates relative to the camera view; the robot rotates to face
+ * targetHeading (a FIELD-frame angle, not a view-frame one).
+ */
+public static Command cameraRelativeDriveAtAngle(
+    Drive drive,
+    DoubleSupplier xSupplier,
+    DoubleSupplier ySupplier,
+    Supplier<Rotation2d> viewHeading,
+    Supplier<Rotation2d> robotHeading,
+    Supplier<Rotation2d> targetHeading) {
 
+  ProfiledPIDController angleController = new ProfiledPIDController(
+      ANGLE_KP, 0.0, ANGLE_KD,
+      new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+  angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+  return Commands.run(() -> {
+    Translation2d stick = getLinearVelocityFromJoysticks(
+        xSupplier.getAsDouble(), ySupplier.getAsDouble());
+    Translation2d fieldVel = stick.rotateBy(viewHeading.get());
+
+    double omega = angleController.calculate(
+        robotHeading.get().getRadians(), targetHeading.get().getRadians());
+
+    ChassisSpeeds fieldSpeeds = new ChassisSpeeds(
+        fieldVel.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+        fieldVel.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+        omega);
+
+    drive.runVelocity(
+        ChassisSpeeds.fromFieldRelativeSpeeds(fieldSpeeds, robotHeading.get()));
+  }, drive)
+      .beforeStarting(() -> angleController.reset(robotHeading.get().getRadians()));
+}
 }

@@ -21,6 +21,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CanIdManager;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
@@ -47,45 +48,56 @@ public class IntakeArm extends SubsystemBase {
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
-        public Pose3d componentPose = new Pose3d(); 
+        public Pose3d componentPose = new Pose3d();
     }
 
-    private final IntakeArmInputsAutoLogged m_inputs = new IntakeArmInputsAutoLogged();
-    private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-            .withMechanismCircumference(CIRCUMFERENCE)
-            .withControlMode(CONTROL_MODE)
-            // Feedback Constants (PID Constants)
-            .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
-            .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
-            // Feedforward Constants
-            .withFeedforward(new ElevatorFeedforward(REAL_KS, 0, REAL_KV))
-            .withSimFeedforward(new ElevatorFeedforward(SIM_KS, 0, SIM_KV))
-            // Telemetry name and verbosity level
-            .withTelemetry("ArmMotor", MOTOR_TELEMATRY_MODE)
-            // Gearing from the motor rotor to final shaft.
-            // In this example GearBox.fromReductionStages(3,4) is the same as
-            // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
-            // your motor.
-            // You could also use .withGearing(12) which does the same thing.
-            .withGearing(new MechanismGearing(GEARING))
-            // Motor properties to prevent over currenting.
-            .withMotorInverted(INVERTED)
-            .withIdleMode(MOTOR_MODE)
-            .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
-            .withSupplyCurrentLimit(SUPPLY_CURRENT_LIMIT)
-            .withStartingPosition(MIN_DISTANCE_MM);
+    private final IntakeArmInputsAutoLogged m_inputs;
+    private SmartMotorControllerConfig smcConfig;
+    private static TalonFX talonFX;
+    private SmartMotorController motor;
+    private ElevatorConfig armCfg;
+    private Elevator arm;
+    private final int id;
+    public IntakeArm(int id, String name) {
+        super(name);
+        this.id = id;
+        m_inputs = new IntakeArmInputsAutoLogged();
+        smcConfig = new SmartMotorControllerConfig(this)
+                .withMechanismCircumference(CIRCUMFERENCE)
+                .withControlMode(CONTROL_MODE)
+                // Feedback Constants (PID Constants)
+                .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
+                .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
+                // Feedforward Constants
+                .withFeedforward(new ElevatorFeedforward(REAL_KS, 0, REAL_KV))
+                .withSimFeedforward(new ElevatorFeedforward(SIM_KS, 0, SIM_KV))
+                // Telemetry name and verbosity level
+                .withTelemetry("ArmMotor"+String.valueOf(id), MOTOR_TELEMATRY_MODE)
+                // Gearing from the motor rotor to final shaft.
+                // In this example GearBox.fromReductionStages(3,4) is the same as
+                // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
+                // your motor.
+                // You could also use .withGearing(12) which does the same thing.
+                .withGearing(new MechanismGearing(GEARING))
+                // Motor properties to prevent over currenting.
+                .withMotorInverted(INVERTED)
+                .withIdleMode(MOTOR_MODE)
+                .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
+                .withSupplyCurrentLimit(SUPPLY_CURRENT_LIMIT)
+                .withStartingPosition(MIN_DISTANCE_MM);
 
-    private static TalonFX talonFX = new TalonFX(MOTOR_ID);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
-    private ElevatorConfig armCfg = new ElevatorConfig()
-            .withHardLimits(MIN_DISTANCE_MM, MAX_DISTANCE_MM)
-            .withCarriageWeight(CARRIAGE_WEIGHT)
-            .withHorizontalElevator()
-            .withAngle(Degrees.of(0))
-            .withTelemetry("intakeArm", ARM_TELEMETRY_MODE);
+        talonFX = new TalonFX(CanIdManager.get(id,MOTOR_ID));
+        motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
+        armCfg = new ElevatorConfig()
+                .withHardLimits(MIN_DISTANCE_MM, MAX_DISTANCE_MM)
+                .withCarriageWeight(CARRIAGE_WEIGHT)
+                .withHorizontalElevator()
+                .withAngle(Degrees.of(0))
+                .withTelemetry("intakeArm"+String.valueOf(id), ARM_TELEMETRY_MODE);
 
-    // Arm Mechanism
-    private Elevator arm = new Elevator(armCfg, motor);
+        // Arm Mechanism
+        arm = new Elevator(armCfg, motor);
+    }
 
     public void updateInputs() {
         m_inputs.setpoint = smcConfig.convertFromMechanism(arm.getMechanismSetpoint().orElse(Degrees.of(0)))
@@ -95,12 +107,12 @@ public class IntakeArm extends SubsystemBase {
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
         m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));
-        double totalExtensionMeters = (m_inputs.position / 1000.0); 
+        double totalExtensionMeters = (m_inputs.position / 1000.0);
         double deltaX = totalExtensionMeters * Math.cos(TRACK_ANGLE_DEGREES);
         double deltaZ = totalExtensionMeters * Math.sin(TRACK_ANGLE_DEGREES);
-                m_inputs.componentPose = new Pose3d(
-            new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
-            new Rotation3d()                        // No rotation
+        m_inputs.componentPose = new Pose3d(
+                new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
+                new Rotation3d() // No rotation
         );
     }
 
@@ -186,11 +198,10 @@ public class IntakeArm extends SubsystemBase {
         return arm.set(dutycycle);
     }
 
-
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("IntakeArm", m_inputs);
+        Logger.processInputs("IntakeArm"+String.valueOf(id), m_inputs);
         arm.updateTelemetry();
     }
 

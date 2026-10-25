@@ -25,7 +25,6 @@ public class Elastic {
   // public static RobotState rState = RobotState.getInstance();
 
   public static void displayAll() {
-    displayRobotPose();
     displayTimer();
     displayHubStatus();
     displayShiftTimer();
@@ -40,9 +39,6 @@ public class Elastic {
     SmartDashboard.putData("Field", m_field);
   }
 
-  public static void displayRobotPose() {
-    m_field.setRobotPose(PrimoCalc.getRobotPose());
-  }
 
   /**
    * Calculates and displays the remaining time in the current 2026 REBUILT

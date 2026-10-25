@@ -2,6 +2,7 @@ package frc.robot.subsystems.IntakeRoller;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CanIdManager;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
@@ -39,28 +40,40 @@ public class IntakeRoller extends SubsystemBase {
     public double temperature = 0.0; // Celsius
   }
 
-  private final IntakeRollerInputsAutoLogged m_inputs = new IntakeRollerInputsAutoLogged();
+  private final IntakeRollerInputsAutoLogged m_inputs;
+  private SmartMotorControllerConfig smcConfig;
+  private TalonFX talonFX;
+  private SmartMotorController motor;
+  private final FlyWheelConfig intakeRollerConfig;
+  private FlyWheel intake;
+  private final int id;
 
-  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-      .withControlMode(CONTROL_MODE)
-      .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
-      .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
-      .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
-      .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
-      .withTelemetry("IntakeMotor", MOTOR_TELEMATRY_MODE)
-      .withGearing(GEARING)
-      .withMotorInverted(INVERTED)
-      .withIdleMode(MOTOR_MODE)
-      .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
-      .withStatorCurrentLimit(SUPPLY_CURRENT_LIMIT);
+  public IntakeRoller(int id, String name) {
+    super(name);
+    this.id = id;
+    m_inputs = new IntakeRollerInputsAutoLogged();
 
-  private TalonFX talonFX = new TalonFX(MOTOR_ID);
-  private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
-  private final FlyWheelConfig intakeRollerConfig = new FlyWheelConfig()
-      .withDiameter(Inch.of(2))
-      // Telemetry name and verbosity for the arm.
-      .withTelemetry("IntakeRollerMech", FLYWHEEL_TELEMATRY_MODE);
-  private FlyWheel intake = new FlyWheel(intakeRollerConfig, motor);
+    smcConfig = new SmartMotorControllerConfig(this)
+        .withControlMode(CONTROL_MODE)
+        .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
+        .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
+        .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
+        .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
+        .withTelemetry("IntakeMotor" + String.valueOf(id), MOTOR_TELEMATRY_MODE)
+        .withGearing(GEARING)
+        .withMotorInverted(INVERTED)
+        .withIdleMode(MOTOR_MODE)
+        .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
+        .withStatorCurrentLimit(SUPPLY_CURRENT_LIMIT);
+
+    talonFX = new TalonFX(CanIdManager.get(id,MOTOR_ID));
+    motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
+    intakeRollerConfig = new FlyWheelConfig()
+        .withDiameter(Inch.of(2))
+        // Telemetry name and verbosity for the arm.
+        .withTelemetry("IntakeRollerMech" + String.valueOf(id), FLYWHEEL_TELEMATRY_MODE);
+    intake = new FlyWheel(intakeRollerConfig, motor);
+  }
 
   public void updateInputs() {
     m_inputs.velocity = intake.getSpeed().in(RPM);
@@ -151,7 +164,7 @@ public class IntakeRoller extends SubsystemBase {
   @Override
   public void periodic() {
     updateInputs();
-    Logger.processInputs("IntakeRoller", m_inputs);
+    Logger.processInputs("IntakeRoller"+String.valueOf(id), m_inputs);
     intake.updateTelemetry();
   }
 

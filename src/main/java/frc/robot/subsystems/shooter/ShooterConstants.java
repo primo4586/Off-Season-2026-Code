@@ -12,8 +12,8 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 public class ShooterConstants {
     //phisycal info
-        public static final int MOTOR_ID = 30; // id for main motor; note: motor must be on canivore bus
-        public static final int FOLLOWER_ID = 31; // id for follower motor; note: motor must be on canivore bus
+        public static final int MOTOR_ID = 5; // id for main motor; note: motor must be on canivore bus
+        public static final int FOLLOWER_ID = 6; // id for follower motor; note: motor must be on canivore bus
         public static final double GEARING = 27/20;
         public static final boolean INVERTED = true;
         public static final boolean FOLLOWER_INVERTED = false;

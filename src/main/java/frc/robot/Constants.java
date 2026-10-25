@@ -6,8 +6,12 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.hal.AllianceStationID;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.util.interpolation.ExterpolationMap;
 
 /**
@@ -52,6 +56,25 @@ public final class Constants {
         .put(3.48, 0.14)
         .put(3.88, 0.15);
   }
+
+  public static final double FIELD_LENGTH = 16.541;
+
+  // Blue (faces +X, 0°)
+  public static final Pose2d BLUE_LEFT = new Pose2d(3.0, 6.0, Rotation2d.fromDegrees(0));
+  public static final Pose2d BLUE_CENTER = new Pose2d(3.0, 4.035, Rotation2d.fromDegrees(0));
+  public static final Pose2d BLUE_RIGHT = new Pose2d(3.0, 2.0, Rotation2d.fromDegrees(0));
+
+  // Red (faces -X, 180°). Left/right swap in Y because the red driver looks the
+  // other way
+  public static final Pose2d RED_LEFT = new Pose2d(FIELD_LENGTH - 3.0, 2.0, Rotation2d.fromDegrees(180));
+  public static final Pose2d RED_CENTER = new Pose2d(FIELD_LENGTH - 3.0, 4.035, Rotation2d.fromDegrees(180));
+  public static final Pose2d RED_RIGHT = new Pose2d(FIELD_LENGTH - 3.0, 6.0, Rotation2d.fromDegrees(180));
+  public static final Pose2d[] ROBOTS_STARTING_POSITIONS = new Pose2d[] {
+        RED_LEFT, RED_CENTER, RED_RIGHT, BLUE_LEFT, BLUE_CENTER,BLUE_RIGHT
+};
+public static final Alliance[] idToAliance = new Alliance[] {
+  Alliance.Red, Alliance.Red, Alliance.Red, Alliance.Blue, Alliance.Blue,Alliance.Blue
+};
   public static final Time SHOOT_TIMEOUT = Seconds.of(3);
   public static final Time MAXIMUM_SHOOT_WAIT_TIME = Seconds.of(0.8);
   public static final double HUB_ANGLE_RADS_THRESHOLD = 0.1;

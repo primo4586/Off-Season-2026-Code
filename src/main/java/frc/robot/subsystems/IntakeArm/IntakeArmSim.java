@@ -18,12 +18,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 
 public class IntakeArmSim extends IntakeArm {
     private final IntakeSimulation intakeSimulation;
-    private final IntakeArm intakeArm;
     private final AbstractDriveTrainSimulation drivetrain;
 
-
-    public IntakeArmSim(AbstractDriveTrainSimulation driveTrain) {
-        intakeArm = new IntakeArm();
+    private final int id;
+    public IntakeArmSim(AbstractDriveTrainSimulation driveTrain, int id, String name) {
+        super(id,name);
+        this.id = id;
         this.drivetrain = driveTrain;
         this.intakeSimulation = IntakeSimulation.OverTheBumperIntake(
                 // Specify the type of game pieces that the intake can collect
@@ -44,14 +44,14 @@ public class IntakeArmSim extends IntakeArm {
     public Command OpenIntake() {
         return Commands.runOnce(() -> {
             intakeSimulation.startIntake();
-        }).andThen(intakeArm.OpenIntake());
+        }).andThen(super.OpenIntake());
     }
 
     @Override
     public Command CloseIntake() {
         return Commands.runOnce(() -> {
             intakeSimulation.stopIntake();
-        }).andThen(intakeArm.CloseIntake());
+        }).andThen(super.CloseIntake());
     }
     public int getFuelCount(){
         return intakeSimulation.getGamePiecesAmount();
@@ -97,8 +97,8 @@ public class IntakeArmSim extends IntakeArm {
                             fuelPoses[i].getRotation()));
         }
 
-        Logger.recordOutput("Intake/FuelPoses", fieldPoses);
-        Logger.recordOutput("Intake/FuelCount", count);
+        Logger.recordOutput("Intake"+id+"/FuelPoses", fieldPoses);
+        Logger.recordOutput("Intake"+id+"/FuelCount", count);
     }
 
     @Override

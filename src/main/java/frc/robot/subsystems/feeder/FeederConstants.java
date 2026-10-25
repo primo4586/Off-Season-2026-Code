@@ -15,7 +15,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 //TODO: recalibrate based on new feeder when new feeder avaiable
 public class FeederConstants {
     //phisycal info
-        public static final int MOTOR_ID = 22;
+        public static final int MOTOR_ID = 1;
         public static final double GEARING = 9;
         public static final boolean INVERTED = true;
         public static final MotorMode NEUTRAL_MODE = MotorMode.BRAKE;

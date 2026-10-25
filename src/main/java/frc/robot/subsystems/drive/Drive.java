@@ -59,7 +59,6 @@ import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     // TunerConstants doesn't include these constants, so they are declared locally
@@ -78,7 +77,7 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     private static final double ROBOT_MASS_KG = 32.79050517;
     private static final double ROBOT_MOI = 4.823;
     private static final double WHEEL_COF = 2;
-    private static final RobotConfig PP_CONFIG = new RobotConfig(
+    public static final RobotConfig PP_CONFIG = new RobotConfig(
             ROBOT_MASS_KG,
             ROBOT_MOI,
             new ModuleConfig(
@@ -125,47 +124,7 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
             lastModulePositions, new Pose2d());
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
-    private static Drive instance;
 
-    public static Drive getInstance(
-            GyroIO gyroIO,
-            ModuleIO flModuleIO,
-            ModuleIO frModuleIO,
-            ModuleIO blModuleIO,
-            ModuleIO brModuleIO,
-            Consumer<Pose2d> resetSimulationPoseCallBack) {
-        if (instance == null) {
-            instance = new Drive(gyroIO, flModuleIO, frModuleIO, blModuleIO, brModuleIO, resetSimulationPoseCallBack);
-        }
-        return instance;
-    }
-
-    public static Drive getRealInstance() {
-        if (instance == null)
-
-            instance = new Drive(
-                    new GyroIOPigeon2(),
-                    new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                    new ModuleIOTalonFX(TunerConstants.FrontRight),
-                    new ModuleIOTalonFX(TunerConstants.BackLeft),
-                    new ModuleIOTalonFX(TunerConstants.BackRight), (robotPose) -> {
-                    });
-
-        return instance;
-    }
-    public static Drive getSimInstance(SwerveDriveSimulation driveSimulation){
-                if (instance == null)
-
-            instance = new Drive(
-                        new GyroIOSim(driveSimulation.getGyroSimulation()),
-                        new ModuleIOSim(driveSimulation.getModules()[0]),
-                        new ModuleIOSim(driveSimulation.getModules()[1]),
-                        new ModuleIOSim(driveSimulation.getModules()[2]),
-                        new ModuleIOSim(driveSimulation.getModules()[3]),
-                        driveSimulation::setSimulationWorldPose);
-
-        return instance;
-    }
     public Drive(
             GyroIO gyroIO,
             ModuleIO flModuleIO,
@@ -197,17 +156,11 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
                 () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
                 this);
         Pathfinding.setPathfinder(new LocalADStarAK());
-        PathPlannerLogging.setLogActivePathCallback((activePath) -> {
-            Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
-        });
-        PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
-            Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-        });
 
         // Configure SysId
         sysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        null, null, null, (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+                        null, null, null, (state) -> {}),
                 new SysIdRoutine.Mechanism((voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     }
 
@@ -215,7 +168,6 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     public void periodic() {
         odometryLock.lock(); // Prevents odometry updates while reading data
         gyroIO.updateInputs(gyroInputs);
-        Logger.processInputs("Drive/Gyro", gyroInputs);
         for (var module : modules) {
             module.periodic();
         }
@@ -230,8 +182,6 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
 
         // Log empty setpoint states when disabled
         if (DriverStation.isDisabled()) {
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
         }
 
         // Update odometry
@@ -278,17 +228,12 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
 
-        // Log unoptimized setpoints and setpoint speeds
-        Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-        Logger.recordOutput("SwerveChassisSpeeds/Setpoints", speeds);
 
         // Send setpoints to modules
         for (int i = 0; i < 4; i++) {
             modules[i].runSetpoint(setpointStates[i]);
         }
 
-        // Log optimized setpoints (runSetpoint mutates each state)
-        Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
     }
 
     /** Runs the drive in a straight line with the specified drive output. */

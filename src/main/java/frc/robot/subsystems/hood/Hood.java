@@ -24,6 +24,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CanIdManager;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
@@ -42,7 +43,7 @@ import org.littletonrobotics.junction.Logger;;
 
 public class Hood extends SubsystemBase {
 
-    @AutoLog
+    @AutoLog()
     public static class HoodInputs {
         public double velocity = 0.0; // RPM
         public double setpoint = 0.0;
@@ -55,41 +56,49 @@ public class Hood extends SubsystemBase {
     }
 
     private final HoodInputsAutoLogged m_inputs = new HoodInputsAutoLogged();
-    private final TalonFX hoodMotor = new TalonFX(MOTOR_ID);
+    private final TalonFX hoodMotor;
+    private final SmartMotorControllerConfig hoodMotorConfig;
+    private final SmartMotorController hoodSMC;
+    private final ArmConfig hoodConfig;
+    private final Arm hood;
+    private final int id;
 
-    private final SmartMotorControllerConfig hoodMotorConfig = new SmartMotorControllerConfig(this)
-            .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
-            .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
-            .withTrapezoidalProfile(MAX_VELOCITY, MAX_ACCELERATION)
-            .withGearing(GEARING)
-            .withIdleMode(MotorMode.COAST)
-            .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
-            .withStatorCurrentLimit(STATOR_LIMIT)
-            .withMotorInverted(INVERTED)
-            .withClosedLoopRampRate(CLOSED_LOOP_RAMP_RATE)
-            .withOpenLoopRampRate(OPEN_LOOP_RAMP_RATE)
-            .withFeedforward(new ArmFeedforward(REAL_KS, REAL_KG, REAL_KV))
-            .withSimFeedforward(new ArmFeedforward(REAL_KS, REAL_KG, REAL_KV))
-            .withControlMode(ControlMode.CLOSED_LOOP)
-            .withStartingPosition(STARTING_POSITION);
+    public Hood(int id, String name) {
+        super(name);
+        this.id = id;
+        hoodMotor = new TalonFX(CanIdManager.get(id,MOTOR_ID));
+        hoodMotorConfig = new SmartMotorControllerConfig(this)
+                .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
+                .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
+                .withTrapezoidalProfile(MAX_VELOCITY, MAX_ACCELERATION)
+                .withGearing(GEARING)
+                .withIdleMode(MotorMode.COAST)
+                .withTelemetry("HoodMotor" + String.valueOf(id), TelemetryVerbosity.HIGH)
+                .withStatorCurrentLimit(STATOR_LIMIT)
+                .withMotorInverted(INVERTED)
+                .withClosedLoopRampRate(CLOSED_LOOP_RAMP_RATE)
+                .withOpenLoopRampRate(OPEN_LOOP_RAMP_RATE)
+                .withFeedforward(new ArmFeedforward(REAL_KS, REAL_KG, REAL_KV))
+                .withSimFeedforward(new ArmFeedforward(REAL_KS, REAL_KG, REAL_KV))
+                .withControlMode(ControlMode.CLOSED_LOOP)
+                .withStartingPosition(STARTING_POSITION);
 
-    private final SmartMotorController hoodSMC = new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1),
-            hoodMotorConfig);
+        hoodSMC = new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1),
+                hoodMotorConfig);
 
-    private final ArmConfig hoodConfig = new ArmConfig()
-            .withTelemetry("Hood", TelemetryVerbosity.HIGH) // The Hood can be modeled as an arm since it has a
-            .withLength(LENGTH_OF_SIM_ARM)
-            .withHardLimits(SIM_HARD_LOW_LIMIT, SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the
-                                                                      // angle its in
+        hoodConfig = new ArmConfig()
+                .withTelemetry("Hood" + String.valueOf(id), TelemetryVerbosity.HIGH) // The Hood can be modeled as an
+                                                                                     // arm since it has a
+                .withLength(LENGTH_OF_SIM_ARM)
+                .withHardLimits(SIM_HARD_LOW_LIMIT, SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the
+                                                                          // angle its in
 
-    private final Arm hood = new Arm(hoodConfig, hoodSMC);
+        hood = new Arm(hoodConfig, hoodSMC);
 
-    public Hood() {
-        
     }
 
     public void updateInputs() {
-        
+
         m_inputs.velocity = hood.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.setpoint = hood.getMechanismSetpoint().orElse(SIM_HARD_LOW_LIMIT).in(Degrees);
         m_inputs.postision = hood.getAngle().in(Degrees);
@@ -97,7 +106,8 @@ public class Hood extends SubsystemBase {
         m_inputs.statorCurrent = hood.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = hood.getMotor().getSupplyCurrent().orElse(Amps.of(0));
         m_inputs.isHomed = isHomed;
-        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13,0.0,0.53), new Rotation3d(0, hood.getAngle().in(Radians)/2, 0));
+        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13, 0.0, 0.53),
+                new Rotation3d(0, hood.getAngle().in(Radians) / 2, 0));
     }
 
     boolean isHomed = false;
@@ -112,7 +122,8 @@ public class Hood extends SubsystemBase {
     public Command run(Angle angle) {
         return hood.run(angle);
     }
-        /**
+
+    /**
      * Run the arm to the given angle, does not stop when the arm reaches the
      * setpoint.
      * 
@@ -167,7 +178,7 @@ public class Hood extends SubsystemBase {
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("Hood", m_inputs);
+        Logger.processInputs("Hood"+String.valueOf(id), m_inputs);
         hood.updateTelemetry();
     }
 

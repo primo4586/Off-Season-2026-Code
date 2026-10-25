@@ -4,13 +4,16 @@ import static edu.wpi.first.units.Units.RPM;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -39,7 +42,11 @@ public class CommandGroupFactory {
 
     private final DoubleSupplier driveXSupplier;
     private final DoubleSupplier driveYSupplier;
+    private final DoubleSupplier cameraRotx;
+    private final DoubleSupplier cameraRoty;
 
+    private final SwerveDriveSimulation driveSimulation;
+    private final PrimoCalc primoCalc;
 
     /**
      * creates commandgroup factory powered by the given subsystems
@@ -52,7 +59,8 @@ public class CommandGroupFactory {
      * @param shooter
      */
     public CommandGroupFactory(Drive drive, Feeder feeder, Hood hood, IntakeArm intakeArm, IntakeRoller intakeRoller,
-            Shooter shooter, DoubleSupplier driveXSupplier, DoubleSupplier driveYSupplier) {
+            Shooter shooter, DoubleSupplier driveXSupplier, DoubleSupplier driveYSupplier, PrimoCalc primoCalc,
+            DoubleSupplier cameraRotx, DoubleSupplier cameraRoty,SwerveDriveSimulation driveSimulation) {
         this.drive = drive;
         this.feeder = feeder;
         this.hood = hood;
@@ -64,9 +72,13 @@ public class CommandGroupFactory {
         intakeArmDefaultCommand = intakeArm.getDefaultCommand();
         intakeRollerDefaultCommand = intakeRoller.getDefaultCommand();
         shooterDefaultCommand = shooter.getDefaultCommand();
-
+                
         this.driveXSupplier = driveXSupplier;
         this.driveYSupplier = driveYSupplier;
+        this.cameraRotx = cameraRotx;
+        this.cameraRoty = cameraRoty;
+        this.primoCalc = primoCalc;
+        this.driveSimulation = driveSimulation;
     }
 
     /**
@@ -75,16 +87,17 @@ public class CommandGroupFactory {
      *         from hub
      */
     public Command interplateShooter() {
-        return shooter.run(PrimoCalc.interplateShooter());
+        return shooter.run(primoCalc.interplateShooter());
     }
 
     public Command interplateHood() {
-        return hood.run(PrimoCalc.interplateHood());
+        return hood.run(primoCalc.interplateHood());
     }
 
     public BooleanSupplier isReadyToShoot(boolean facehub) {
-        return () -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub) && shooter.isReady().getAsBoolean();
-    }
+    return () -> (!facehub || primoCalc.isFacingHub(driveSimulation.getSimulatedDriveTrainPose()))
+            && shooter.isReady().getAsBoolean();
+}
 
     /**
      * faces robot towards hub(if facehub == true), interplates shooter and hood,
@@ -104,9 +117,12 @@ public class CommandGroupFactory {
                         feeder.feed()),
                 interplateHood(),
                 intakeArm.OpenAndCloseIntake(), // push fuels into feeder
-                DriveCommands.joystickDriveAtAngle(
-                        drive, () -> driveXSupplier.getAsDouble(), () -> driveYSupplier.getAsDouble(),
-                        () -> new Rotation2d(PrimoCalc.getRadsToHub())).onlyIf(() -> facehub)); // look towards hub only
+                DriveCommands.cameraRelativeDriveAtAngle(
+                        drive, driveXSupplier,
+                         driveYSupplier,
+                         ()->new Rotation2d(cameraRotx.getAsDouble(),cameraRoty.getAsDouble()),
+                         () -> driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+                        () -> primoCalc.getAngleToHub(driveSimulation.getSimulatedDriveTrainPose().getTranslation())).onlyIf(() -> facehub)); // look towards hub only
                                                                                                 // if facehub == true
     }
 
