@@ -40,7 +40,7 @@ public class CommandGroupFactory {
     private final DoubleSupplier driveXSupplier;
     private final DoubleSupplier driveYSupplier;
 
-    public final PrimoCalc primoCalc;
+
     /**
      * creates commandgroup factory powered by the given subsystems
      * NOTE: create after adding defualtcommands!
@@ -67,23 +67,25 @@ public class CommandGroupFactory {
 
         this.driveXSupplier = driveXSupplier;
         this.driveYSupplier = driveYSupplier;
-
-        primoCalc = new PrimoCalc(drive);
     }
 
     /**
-     * @return command that causes shooter and hood to interplate based on distance from hub
+     * @return command that causes shooter and hood to interplate based on distance
+     * 
+     *         from hub
      */
-    public Command interplateShooterAndHood() {
-        return Commands.parallel(
-                shooter.run(primoCalc.interplateShooter()),
-                hood.run(primoCalc.interplateHood()));
-
+    public Command interplateShooter() {
+        return shooter.run(PrimoCalc.interplateShooter());
     }
-    
-    public BooleanSupplier isReadyToShoot(boolean facehub){
-        return  ()->(primoCalc.isFacingHub().getAsBoolean() || !facehub) && shooter.isReady().getAsBoolean();
-    } 
+
+    public Command interplateHood() {
+        return hood.run(PrimoCalc.interplateHood());
+    }
+
+    public BooleanSupplier isReadyToShoot(boolean facehub) {
+        return () -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub) && shooter.isReady().getAsBoolean();
+    }
+
     /**
      * faces robot towards hub(if facehub == true), interplates shooter and hood,
      * activates feeder, and start opening and closing intake intake in order to
@@ -100,11 +102,11 @@ public class CommandGroupFactory {
                                 Commands.waitUntil(isReadyToShoot(facehub)),
                                 Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
                         feeder.feed()),
-                interplateShooterAndHood(),
+                interplateHood(),
                 intakeArm.OpenAndCloseIntake(), // push fuels into feeder
                 DriveCommands.joystickDriveAtAngle(
                         drive, () -> driveXSupplier.getAsDouble(), () -> driveYSupplier.getAsDouble(),
-                        () -> new Rotation2d(primoCalc.getRadsToHub())).onlyIf(() -> facehub)); // look towards hub only
+                        () -> new Rotation2d(PrimoCalc.getRadsToHub())).onlyIf(() -> facehub)); // look towards hub only
                                                                                                 // if facehub == true
     }
 
@@ -116,9 +118,7 @@ public class CommandGroupFactory {
     public Command shoot() {
         return Commands.parallel(
                 prepareToShoot(true),
-                shooter.shoot()
-
-        );
+                interplateShooter());
     }
 
     /**
@@ -142,8 +142,8 @@ public class CommandGroupFactory {
         return Commands.parallel(
                 feeder.feed(),
                 intakeArm.OpenAndCloseIntake(), // push balls into feeder
-                interplateShooterAndHood(),
-                shooter.shoot());
+                interplateHood(),
+                interplateShooter());
     }
 
     /**
@@ -169,7 +169,6 @@ public class CommandGroupFactory {
                 intakeArm.set(0),
                 intakeRoller.set(0),
                 shooter.run(RPM.of(0)));
-
     }
 
     /**

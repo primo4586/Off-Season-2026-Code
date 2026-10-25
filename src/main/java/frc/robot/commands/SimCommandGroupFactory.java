@@ -33,6 +33,7 @@ public class SimCommandGroupFactory {
         this.commandGroupFactory = commandGroupFactory;
         this.drive = drive;
         this.intakeSimulation = intakeSimulation;
+        Logger.recordOutput("score", score);
         SmartDashboard.putNumber("shootersim/startingx", 0);
         SmartDashboard.putNumber("shootersim/startingy", 0);
         SmartDashboard.putNumber("shootersim/startingz", 900);
@@ -42,19 +43,6 @@ public class SimCommandGroupFactory {
     }
 
     public void shootSimulatedFuel() {
-        Logger.recordOutput("Shooter/RobotX", drive.getPose().getX());
-        Logger.recordOutput("Shooter/RobotY", drive.getPose().getY());
-        Logger.recordOutput("Shooter/RobotHeadingDeg", drive.getRotation().getDegrees());
-
-        Logger.recordOutput("Shooter/HubX",
-                commandGroupFactory.primoCalc.getHubPos().getX());
-        Logger.recordOutput("Shooter/HubY",
-                commandGroupFactory.primoCalc.getHubPos().getY());
-
-        Logger.recordOutput(
-                "Shooter/DistanceToHub",
-                drive.getPose().getTranslation().getDistance(
-                        commandGroupFactory.primoCalc.getHubPos().toPose2d().getTranslation()));
         RebuiltFuelOnFly fuelOnFly = new RebuiltFuelOnFly(
                 // Specify the position of the chassis when the fuel is launched
                 drive.getPose().getTranslation(),
@@ -85,10 +73,10 @@ public class SimCommandGroupFactory {
                         // is configured
                         (pose3ds) -> Logger.recordOutput("Shooter/FuelProjectileUnsuccessfulShot",
                                 pose3ds.toArray(Pose3d[]::new)))
-                .withTargetPosition(() -> commandGroupFactory.primoCalc.getHubPos().getTranslation())
+                .withTargetPosition(() -> PrimoCalc.getHubPos().getTranslation())
                 .withHitTargetCallBack(() -> {
                     score += 1;
-                    Logger.recordOutput("Shooter/score", score);
+                    Logger.recordOutput("score", score);
                 });
         intakeSimulation.removeFuel(1);
         simulatedArena.addGamePieceProjectile(fuelOnFly);

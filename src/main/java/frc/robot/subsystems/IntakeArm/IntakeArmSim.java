@@ -59,6 +59,12 @@ public class IntakeArmSim extends IntakeArm {
     public void removeFuel(int count){
         intakeSimulation.setGamePiecesCount(intakeSimulation.getGamePiecesAmount()-count);
     }
+    public void addFuel(int count){
+        intakeSimulation.setGamePiecesCount(intakeSimulation.getGamePiecesAmount()+count);
+    }
+    public void setFuel(int count){
+        intakeSimulation.setGamePiecesCount(count);
+    }
     public void updateFuelVisualization(Pose3d robotPose) {
         int count = intakeSimulation.getGamePiecesAmount();
 

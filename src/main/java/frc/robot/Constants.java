@@ -52,6 +52,7 @@ public final class Constants {
         .put(3.48, 0.14)
         .put(3.88, 0.15);
   }
+  public static final Time SHOOT_TIMEOUT = Seconds.of(3);
   public static final Time MAXIMUM_SHOOT_WAIT_TIME = Seconds.of(0.8);
   public static final double HUB_ANGLE_RADS_THRESHOLD = 0.1;
   public static final Mode simMode = Mode.SIM;
