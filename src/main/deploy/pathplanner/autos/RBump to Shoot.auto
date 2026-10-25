@@ -1,0 +1,38 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RBump reverse"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "open intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot with timeout"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Close Autos",
+  "choreoAuto": false
+}

@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "open intake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LBump reverse"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot with timeout"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LBump reverse to Fuck Everybody"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Far Autos",
+  "choreoAuto": false
+}
