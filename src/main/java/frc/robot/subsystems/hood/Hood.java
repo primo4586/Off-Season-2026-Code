@@ -96,7 +96,7 @@ public class Hood extends SubsystemBase {
         m_inputs.statorCurrent = hood.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = hood.getMotor().getSupplyCurrent().orElse(Amps.of(0));
         m_inputs.isHomed = isHomed;
-        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13,0.0,0.53), new Rotation3d(0, -hood.getAngle().in(Degrees), 0));
+        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13,0.0,0.53), new Rotation3d(0, m_inputs.postision/100*-1, 0));
     }
 
     boolean isHomed = false;
