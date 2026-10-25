@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "intake"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "RBump reverse"
@@ -29,9 +23,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "RBump reverse to Fuck Everybody"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RBump reverse to Fuck Everybody"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
           }
         },
         {
