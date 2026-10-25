@@ -7,15 +7,20 @@ package frc.robot;
 import frc.RobotSubsystemsManager;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltHub;
 import org.littletonrobotics.junction.Logger;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 /**
@@ -41,10 +46,21 @@ public class RobotContainer {
         if (Constants.currentMode == Constants.Mode.SIM) {
             Arena2026Rebuilt arena = new Arena2026Rebuilt(false);
             arena.setEfficiencyMode(false);
+            Logger.recordOutput("Debug/RedShootPoses", RebuiltHub.redShootPoses);
+            // Workaround for RebuiltHub.redShootPoses bug (poses end up off-field / wrong
+            // heading).
+            // Rebuilt from the blue chute layout, mirrored across the field's centerline.
+            double[] yOffsets = { 0.447675, 0.149225, -0.149225, -0.447675 };
+            double[] blueYawDeg = { 33.75, 11.25, -11.25, -33.75 }; // symmetric spread
+            for (int i = 0; i < RebuiltHub.redShootPoses.length; i++) {
+                RebuiltHub.redShootPoses[i] = new Pose3d(
+                        new Translation3d(11.938 - 0.5969, 4.034536 + yOffsets[i], 1.5748 - 0.5),
+                        new Rotation3d(0, Math.toRadians(-15), Math.toRadians(180 - blueYawDeg[i])));
+            }
             SimulatedArena.overrideInstance(arena);
         }
         for (int i = 0; i < robots.length; i++) {
-            robots[i] = new RobotSubsystemsManager(i,Constants.idToAliance[i]);
+            robots[i] = new RobotSubsystemsManager(i, Constants.idToAliance[i]);
             SimulatedArena.getInstance().addDriveTrainSimulation(robots[i].driveSimulation);
         }
 
@@ -72,6 +88,19 @@ public class RobotContainer {
      */
 
     public void periodic() {
+        Logger.recordOutput("score/redscore", SimulatedArena.getInstance().getScore(false));
+        Logger.recordOutput("score/bluescore", SimulatedArena.getInstance().getScore(true));
+
+        for (RobotSubsystemsManager robot : robots) {
+            robot.periodic();
+        }
+    }
+
+    public void stopAll() {
+        for (RobotSubsystemsManager robot : robots) {
+            CommandScheduler.getInstance().schedule(robot.commandGroupFactory.stopAll());
+            ;
+        }
     }
 
     public void resetSimulation() {

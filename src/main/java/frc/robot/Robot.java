@@ -146,6 +146,7 @@ public class Robot extends LoggedRobot {
 
     m_simMatchTime = 20;
   }
+  
 
   /** This function is called periodically during autonomous. */
   @Override
@@ -160,9 +161,9 @@ public class Robot extends LoggedRobot {
     // this line or comment it out.
     m_simMatchTime = 140;
     m_robotContainer.resetIntake();
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
+   for (RobotSubsystemsManager r : m_robotContainer.robots) {
+    r.getAutonomousCommand().cancel();
+   }
   }
 
   /** This function is called periodically during operator control. */

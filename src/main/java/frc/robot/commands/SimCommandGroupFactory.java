@@ -32,7 +32,6 @@ public class SimCommandGroupFactory {
         private Pose2d pose;
         private final SwerveDriveSimulation drivesim;
         private final IntakeArmSim intakeSimulation;
-        static int score = 0;
         private final PrimoCalc primoCalc;
         private final int id;
         public SimCommandGroupFactory(SwerveDriveSimulation drive, CommandGroupFactory commandGroupFactory,
@@ -41,12 +40,6 @@ public class SimCommandGroupFactory {
                 this.commandGroupFactory = commandGroupFactory;
                 this.drivesim = drive;
                 this.intakeSimulation = intakeSimulation;
-                Logger.recordOutput("score", score);
-                SmartDashboard.putNumber("shootersim/startingx", 0);
-                SmartDashboard.putNumber("shootersim/startingy", 0);
-                SmartDashboard.putNumber("shootersim/startingz", 900);
-                SmartDashboard.putNumber("shootersim/startingspeed", 6.75);
-                SmartDashboard.putNumber("shootersim/startingdegress", 45);
                 this.primoCalc = primoCalc;
         }
 
@@ -57,39 +50,22 @@ public class SimCommandGroupFactory {
                                 pose.getTranslation(),
                                 // Specify the translation of the shooter from the robot center (in the
                                 // shooter’s reference frame)
-                                new Translation2d(SmartDashboard.getNumber("shootersim/startingx", 0),
-                                                SmartDashboard.getNumber("shootersim/startingy", 0)),
+                                new Translation2d(0,
+                                                0),
                                 // Specify the field-relative speed of the chassis, adding it to the initial
                                 // velocity of the projectile
                                 drivesim.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
                                 // The shooter facing direction is the same as the robot’s facing direction
                                 pose.getRotation(),
                                 // Initial height of the flying fuel
-                                Millimeters.of(SmartDashboard.getNumber("shootersim/startingz", 0)),
+                                Millimeters.of(900),
                                 // The launch speed is proportional to the RPM; assumed to be 16 meters/second
                                 // at 6000 RPM
-                                MetersPerSecond.of(SmartDashboard.getNumber("shootersim/startingspeed", 0)),
+                                MetersPerSecond.of(6.75),
                                 // The angle at which the fuel is launched
-                                Degrees.of(SmartDashboard.getNumber("shootersim/startingdegress", 0))
+                                Degrees.of(45)
 
                 );
-                fuelOnFly
-                                .withProjectileTrajectoryDisplayCallBack(
-                                                // Callback for when the fuel will eventually hit the target (if
-                                                // configured)
-                                                (pose3ds) -> Logger.recordOutput("Shooter/FuelProjectileSuccessfulShot",
-                                                                pose3ds.toArray(Pose3d[]::new)),
-                                                // Callback for when the fuel will eventually miss the target, or if no
-                                                // target
-                                                // is configured
-                                                (pose3ds) -> Logger.recordOutput(
-                                                                "Shooter/FuelProjectileUnsuccessfulShot",
-                                                                pose3ds.toArray(Pose3d[]::new)))
-                                .withTargetPosition(() -> primoCalc.getHubPos().getTranslation())
-                                .withHitTargetCallBack(() -> {
-                                        score += 1;
-                                        Logger.recordOutput("score", score);
-                                });
                 intakeSimulation.removeFuel(1);
                 simulatedArena.addGamePieceProjectile(fuelOnFly);
         }

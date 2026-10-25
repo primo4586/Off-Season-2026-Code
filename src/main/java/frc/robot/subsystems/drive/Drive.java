@@ -59,6 +59,7 @@ import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     // TunerConstants doesn't include these constants, so they are declared locally
@@ -76,7 +77,7 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     // PathPlanner config constants
     private static final double ROBOT_MASS_KG = 32.79050517;
     private static final double ROBOT_MOI = 4.823;
-    private static final double WHEEL_COF = 2;
+    private static final double WHEEL_COF = 1.2;
     public static final RobotConfig PP_CONFIG = new RobotConfig(
             ROBOT_MASS_KG,
             ROBOT_MOI,
@@ -124,14 +125,18 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
             lastModulePositions, new Pose2d());
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
-
+        private final Alliance alliance;
+        private final int id;
     public Drive(
             GyroIO gyroIO,
             ModuleIO flModuleIO,
             ModuleIO frModuleIO,
             ModuleIO blModuleIO,
             ModuleIO brModuleIO,
-            Consumer<Pose2d> resetSimulationPoseCallBack) {
+            Consumer<Pose2d> resetSimulationPoseCallBack,
+            Alliance alliance, int id) {
+        this.alliance = alliance;
+        this.id = id;
         this.gyroIO = gyroIO;
         this.resetSimulationPoseCallBack = resetSimulationPoseCallBack;
         modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
@@ -145,7 +150,20 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
         // Start odometry thread
         PhoenixOdometryThread.getInstance().start();
 
-        // Configure AutoBuilder for PathPlanner
+        Pathfinding.setPathfinder(new LocalADStarAK());
+        PathPlannerLogging.setLogActivePathCallback((activePath) -> {
+            Logger.recordOutput("Odometry/Trajectory" + id, activePath.toArray(new Pose2d[activePath.size()]));
+        });
+
+        // Configure SysId
+        sysId = new SysIdRoutine(
+                new SysIdRoutine.Config(
+                        null, null, null, (state) -> {
+                        }),
+                new SysIdRoutine.Mechanism((voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    }
+
+    public void configureAutoBuilder() {
         AutoBuilder.configure(
                 this::getPose,
                 this::resetOdometry,
@@ -153,16 +171,12 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
                 this::runVelocity,
                 new PPHolonomicDriveController(new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
                 PP_CONFIG,
-                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+                () -> alliance == Alliance.Red,
                 this);
-        Pathfinding.setPathfinder(new LocalADStarAK());
-
-        // Configure SysId
-        sysId = new SysIdRoutine(
-                new SysIdRoutine.Config(
-                        null, null, null, (state) -> {}),
-                new SysIdRoutine.Mechanism((voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+        PathPlannerLogging.setLogActivePathCallback(
+                (activePath) -> Logger.recordOutput("Odometry/Trajectory" + id, activePath.toArray(new Pose2d[0])));
     }
+    
 
     @Override
     public void periodic() {
@@ -227,7 +241,6 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
         speeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
-
 
         // Send setpoints to modules
         for (int i = 0; i < 4; i++) {
@@ -344,7 +357,7 @@ public class Drive extends SubsystemBase implements Vision.VisionConsumer {
     /** Adds a new timestamped vision measurement. */
     @Override
     public void accept(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs) {
-        poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+        // poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
     }
 
     /** Returns the maximum linear speed in meters per sec. */
