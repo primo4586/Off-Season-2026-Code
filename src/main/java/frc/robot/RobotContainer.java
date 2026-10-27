@@ -245,7 +245,9 @@ public class RobotContainer {
         hood.setEncoderPostision(0);
         ;
     }
-
+    public Command closeIntake(){
+        return intakeArm.CloseIntake();
+    }
     public void periodic() {
     }
 }
