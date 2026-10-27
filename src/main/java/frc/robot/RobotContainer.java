@@ -5,6 +5,8 @@
 package frc.robot;
 
 import frc.RobotSubsystemsManager;
+import frc.robot.primoLib.Elastic;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltHub;
@@ -88,9 +90,12 @@ public class RobotContainer {
      */
 
     public void periodic() {
-        Logger.recordOutput("score/redscore", SimulatedArena.getInstance().getScore(false));
-        Logger.recordOutput("score/bluescore", SimulatedArena.getInstance().getScore(true));
-
+        SimulatedArena simArena = SimulatedArena.getInstance();
+        Logger.recordOutput("score/redscore", simArena.getScore(false));
+        Logger.recordOutput("score/bluescore", simArena.getScore(true));
+        if(simArena.getScore(true) > simArena.getScore(false)){
+            Elastic.blueWon = true;
+        }
         for (RobotSubsystemsManager robot : robots) {
             robot.periodic();
         }

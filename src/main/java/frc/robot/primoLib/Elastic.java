@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Elastic {
   static Field2d m_field = new Field2d();
   private static double simMatchTime = -1;
+  public static boolean blueWon = false;
 
   public static void setSimMatchTime(double t) {
     simMatchTime = t;
@@ -31,14 +32,13 @@ public class Elastic {
   }
 
   public static void displayTimer() {
-    SmartDashboard.putNumber("timer", getMatchTime());
+    SmartDashboard.putNumber("timer", Math.round(getMatchTime())); // return match time rounded
   }
 
   public static void displayField() {
     // Do this in either robot or subsystem init
     SmartDashboard.putData("Field", m_field);
   }
-
 
   /**
    * Calculates and displays the remaining time in the current 2026 REBUILT
@@ -48,32 +48,60 @@ public class Elastic {
   public static void displayShiftTimer() {
     double matchTime = getMatchTime();
     double timeUntilNextShift = 0.0;
-
+    boolean isRedActive = false;
+    boolean isBlueActive = false;
+    int shiftNumber = 0;
     if (DriverStation.isAutonomous()) {
       // During Auto, show time until Teleop initialization
       timeUntilNextShift = matchTime;
+      isBlueActive = true;
+      isRedActive = true;
+      shiftNumber = 0;
+
     } else if (DriverStation.isTeleop()) {
       if (matchTime > 130) {
         // Transition Shift (140s -> 130s)
+        shiftNumber = 1;
         timeUntilNextShift = matchTime - 130;
+        isBlueActive = true;
+        isRedActive = true;
       } else if (matchTime > 105) {
         // Alliance Shift 1 (130s -> 105s)
+        shiftNumber = 2;
         timeUntilNextShift = matchTime - 105;
+        isBlueActive = !blueWon;
+        isRedActive = blueWon;
       } else if (matchTime > 80) {
         // Alliance Shift 2 (105s -> 80s)
+        shiftNumber = 3;
         timeUntilNextShift = matchTime - 80;
+        isBlueActive = blueWon;
+        isRedActive = !blueWon;
       } else if (matchTime > 55) {
         // Alliance Shift 3 (80s -> 55s)
+        shiftNumber = 4;
         timeUntilNextShift = matchTime - 55;
+        isBlueActive = !blueWon;
+        isRedActive = blueWon;
       } else if (matchTime > 30) {
         // Alliance Shift 4 (55s -> 30s)
+        shiftNumber = 5;
         timeUntilNextShift = matchTime - 30;
+        isBlueActive = blueWon;
+        isRedActive = !blueWon;
       } else {
         // End Game (30s -> 0s) - Countdown until the match ends
+        shiftNumber = 6;
         timeUntilNextShift = matchTime;
+        isBlueActive = true;
+        isRedActive = true;
       }
-      SmartDashboard.putNumber("Time Until Next Shift", timeUntilNextShift);
     }
+    SmartDashboard.putNumber("Time Until Next Shift", Math.round(timeUntilNextShift));
+    SmartDashboard.putNumber("Active Shift", shiftNumber);
+    SmartDashboard.putBoolean("blueActive", isBlueActive);
+    SmartDashboard.putBoolean("redActive", isRedActive);
+
   }
 
   /**
