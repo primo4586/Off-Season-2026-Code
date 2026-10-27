@@ -6,11 +6,9 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Constants.InterpolationMaps;
 import frc.robot.primoLib.PrimoCalc;
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.IntakeRoller.IntakeRoller;

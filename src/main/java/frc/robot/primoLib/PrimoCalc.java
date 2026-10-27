@@ -7,18 +7,13 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
 import frc.robot.Constants.InterpolationMaps;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.hood.HoodConstants;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.util.interpolation.ExterpolationMap;
-import frc.robot.util.interpolation.InterpolationMap;
-
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import java.util.function.BooleanSupplier;

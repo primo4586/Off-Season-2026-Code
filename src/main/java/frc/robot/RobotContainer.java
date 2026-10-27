@@ -18,9 +18,6 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
-import static edu.wpi.first.units.Units.Degree;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Rotation;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
