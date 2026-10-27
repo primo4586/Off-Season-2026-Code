@@ -39,6 +39,7 @@ public class IntakeRoller extends SubsystemBase {
     public Current supplyCurrent = Amps.of(0);
     public Current statorCurrent = Amps.of(0);
     public double temperature = 0.0; // Celsius
+    public boolean isTuning = false;
   }
 
   private final IntakeRollerInputsAutoLogged m_inputs = new IntakeRollerInputsAutoLogged();
@@ -49,7 +50,7 @@ public class IntakeRoller extends SubsystemBase {
       .withSimClosedLoopController(SIM_KP, SIM_KI, SIM_KD)
       .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
       .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
-      .withTelemetry("IntakeMotor", MOTOR_TELEMATRY_MODE)
+      .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_TELEMATRY_MODE)
       .withGearing(GEARING)
       .withMotorInverted(INVERTED)
       .withIdleMode(MOTOR_MODE)
@@ -61,16 +62,28 @@ public class IntakeRoller extends SubsystemBase {
   private final FlyWheelConfig intakeRollerConfig = new FlyWheelConfig()
       .withDiameter(Inch.of(2))
       // Telemetry name and verbosity for the arm.
-      .withTelemetry("IntakeRollerMech", FLYWHEEL_TELEMATRY_MODE);
-  private FlyWheel intake = new FlyWheel(intakeRollerConfig, motor);
+      .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, FLYWHEEL_TELEMATRY_MODE);
+  private FlyWheel intakeRoller = new FlyWheel(intakeRollerConfig, motor);
+    NetworkTable tuningTable = NetworkTableInstance.getDefault()
+            .getTable("Tuning")
+            .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
 
+    public IntakeRoller() {
+        tuningTable.getEntry("voltage/enabled").setBoolean(false);
+        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
+    }
   public void updateInputs() {
-    m_inputs.velocity = intake.getSpeed().in(RPM);
-    m_inputs.setpoint = intake.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
-    m_inputs.volts = intake.getMotor().getVoltage();
-    m_inputs.statorCurrent = intake.getMotor().getStatorCurrent();
-    m_inputs.statorCurrent = intake.getMotor().getSupplyCurrent().orElse(Amps.of(0));
-    m_inputs.temperature = intake.getMotor().getTemperature().in(Celsius);
+    m_inputs.velocity = intakeRoller.getSpeed().in(RPM);
+    m_inputs.setpoint = intakeRoller.getMechanismSetpointVelocity().orElse(RPM.of(0)).in(RPM);
+    m_inputs.volts = intakeRoller.getMotor().getVoltage();
+    m_inputs.statorCurrent = intakeRoller.getMotor().getStatorCurrent();
+    m_inputs.statorCurrent = intakeRoller.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+    m_inputs.temperature = intakeRoller.getMotor().getTemperature().in(Celsius);
+            m_inputs.isTuning = SmartDashboard
+                .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
+        if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
+            intakeRoller.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
+        }
   }
 
   /**
@@ -79,7 +92,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command intake() {
-    return intake.run(RPM.of(INTAKE_SPEED));
+    return intakeRoller.run(RPM.of(INTAKE_SPEED));
   }
 
   /**
@@ -88,7 +101,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command outake() {
-    return intake.run(RPM.of(-INTAKE_SPEED));
+    return intakeRoller.run(RPM.of(-INTAKE_SPEED));
   }
 
   /**
@@ -97,7 +110,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command intakeWithVoltage() {
-    return intake.setVoltage(Volts.of(INTAKE_VOLTAGE));
+    return intakeRoller.setVoltage(Volts.of(INTAKE_VOLTAGE));
   }
 
   /**
@@ -106,7 +119,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command outakeWithVoltage() {
-    return intake.setVoltage(Volts.of(-INTAKE_VOLTAGE));
+    return intakeRoller.setVoltage(Volts.of(-INTAKE_VOLTAGE));
   }
 
   /**
@@ -116,7 +129,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command intake(AngularVelocity intakeVelocity) {
-    return intake.run(intakeVelocity);
+    return intakeRoller.run(intakeVelocity);
   }
 
   /**
@@ -126,7 +139,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command intakeWithVoltage(Voltage intakeVoltage) {
-    return intake.setVoltage(intakeVoltage);
+    return intakeRoller.setVoltage(intakeVoltage);
   }
 
   /**
@@ -135,7 +148,7 @@ public class IntakeRoller extends SubsystemBase {
    * @return AngularVelocity of motor
    */
   public AngularVelocity getVelocity() {
-    return intake.getSpeed();
+    return intakeRoller.getSpeed();
   }
 
   /**
@@ -147,19 +160,19 @@ public class IntakeRoller extends SubsystemBase {
    * @return
    */
   public Command set(double dutyCycle) {
-    return intake.set(dutyCycle);
+    return intakeRoller.set(dutyCycle);
   }
 
   @Override
   public void periodic() {
     updateInputs();
-    Logger.processInputs("IntakeRoller", m_inputs);
-    intake.updateTelemetry();
+    Logger.processInputs(SUBSYSTEM_TELEMETRY_NAME, m_inputs);
+    intakeRoller.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    intake.simIterate();
+    intakeRoller.simIterate();
   }
 
 }

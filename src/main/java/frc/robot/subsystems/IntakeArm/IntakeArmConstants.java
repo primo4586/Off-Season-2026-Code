@@ -1,14 +1,17 @@
 package frc.robot.subsystems.IntakeArm;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Grams;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Millimeters;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
@@ -36,6 +39,9 @@ public class IntakeArmConstants {
         public static final Time CLOSE_VOLTAGE_TIME = Seconds.of(1);
     //control logic 
     public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
+    //TRAPEZOIDAL PROFILE
+    public static final AngularVelocity MAX_VELOCITY = RPM.of(5000);
+    public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(2500);
     //Real PID constants 
     public static final double REAL_KP = 20;
     public static final double REAL_KI = 0.0;
@@ -65,6 +71,8 @@ public class IntakeArmConstants {
     //TOLERANCE
     public static final Distance ARM_TOLERANCE = Millimeters.of(1); //TODO: TUNE
     //Telematry
-    public static final TelemetryVerbosity MOTOR_TELEMATRY_MODE = TelemetryVerbosity.HIGH;
+    public static final String SUBSYSTEM_TELEMETRY_NAME = "IntakeArm";
+    public static final String MOTOR_TELEMETRY_NAME = "IntakeArmMotor";
+    public static final TelemetryVerbosity MOTOR_TELEMETRY_MODE = TelemetryVerbosity.HIGH;
     public static final TelemetryVerbosity ARM_TELEMETRY_MODE = TelemetryVerbosity.HIGH;
 }

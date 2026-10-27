@@ -50,6 +50,7 @@ public class Hood extends SubsystemBase {
         public Current supplyCurrent = Amps.of(0.0);
         public Voltage volts = Volts.of(0.0);
         public boolean isHomed = false;
+        public boolean isTuning = false;
         public Pose3d componentPose = new Pose3d();
     }
 
@@ -62,7 +63,7 @@ public class Hood extends SubsystemBase {
             .withTrapezoidalProfile(MAX_VELOCITY, MAX_ACCELERATION)
             .withGearing(GEARING)
             .withIdleMode(MotorMode.COAST)
-            .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
+            .withTelemetry(MOTOR_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
             .withStatorCurrentLimit(STATOR_LIMIT)
             .withMotorInverted(INVERTED)
             .withClosedLoopRampRate(CLOSED_LOOP_RAMP_RATE)
@@ -76,18 +77,25 @@ public class Hood extends SubsystemBase {
             hoodMotorConfig);
 
     private final ArmConfig hoodConfig = new ArmConfig()
-            .withTelemetry("Hood", TelemetryVerbosity.HIGH) // The Hood can be modeled as an arm since it has a
+            .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, TelemetryVerbosity.HIGH) // The Hood can be modeled as an arm since
+                                                                              // it has a
             .withLength(LENGTH_OF_SIM_ARM)
             .withHardLimits(SIM_HARD_LOW_LIMIT, SIM_HARD_HIGH_LIMIT); // gravitational force acted upon based on the
                                                                       // angle its in
 
     private final Arm hood = new Arm(hoodConfig, hoodSMC);
 
+    NetworkTable tuningTable = NetworkTableInstance.getDefault()
+            .getTable("Tuning")
+            .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
+
     public Hood() {
+        tuningTable.getEntry("voltage/enabled").setBoolean(false);
+        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
     }
 
     public void updateInputs() {
-        
+
         m_inputs.velocity = hood.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.setpoint = hood.getMechanismSetpoint().orElse(SIM_HARD_LOW_LIMIT).in(Degrees);
         m_inputs.postision = hood.getAngle().in(Degrees);
@@ -95,7 +103,13 @@ public class Hood extends SubsystemBase {
         m_inputs.statorCurrent = hood.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = hood.getMotor().getSupplyCurrent().orElse(Amps.of(0));
         m_inputs.isHomed = isHomed;
-        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13,0.0,0.53), new Rotation3d(0, m_inputs.postision/100*-1, 0));
+        m_inputs.isTuning = SmartDashboard
+                .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
+        if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
+            hood.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
+        }
+        m_inputs.componentPose = new Pose3d(new Translation3d(-0.13, 0.0, 0.53),
+                new Rotation3d(0, m_inputs.postision / 100 * -1, 0));
     }
 
     boolean isHomed = false;
@@ -110,7 +124,8 @@ public class Hood extends SubsystemBase {
     public Command run(Angle angle) {
         return hood.run(angle);
     }
-        /**
+
+    /**
      * Run the arm to the given angle, does not stop when the arm reaches the
      * setpoint.
      * 
@@ -165,7 +180,7 @@ public class Hood extends SubsystemBase {
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("Hood", m_inputs);
+        Logger.processInputs(SUBSYSTEM_TELEMETRY_NAME, m_inputs);
         hood.updateTelemetry();
     }
 

@@ -35,6 +35,8 @@ public class IntakeRollerConstants {
     public static final Current STATOR_CURRENT_LIMIT = Amps.of(120);
     public static final Current SUPPLY_CURRENT_LIMIT = Amps.of(60);
     //Telematry
+    public static final String SUBSYSTEM_TELEMETRY_NAME = "IntakeRoller";
+    public static final String MOTOR_TELEMETRY_NAME = "IntakeRollerMotor";
     public static final TelemetryVerbosity MOTOR_TELEMATRY_MODE = TelemetryVerbosity.HIGH;
     public static final TelemetryVerbosity FLYWHEEL_TELEMATRY_MODE = TelemetryVerbosity.HIGH;
     

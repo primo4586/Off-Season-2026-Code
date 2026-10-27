@@ -36,6 +36,7 @@ public class Feeder extends SubsystemBase {
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
+        public boolean isTuning = false;
     }
 
     private final FeederInputsAutoLogged m_inputs = new FeederInputsAutoLogged();
@@ -49,7 +50,7 @@ public class Feeder extends SubsystemBase {
             .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
             .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
             // Telemetry name and verbosity level
-            .withTelemetry("FeederMotor", MOTOR_VERBOSITY)
+            .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_VERBOSITY)
             .withGearing(GEARING)
             .withMotorInverted(INVERTED)
             .withIdleMode(NEUTRAL_MODE)
@@ -60,14 +61,26 @@ public class Feeder extends SubsystemBase {
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
     private final FlyWheelConfig feederConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
-            .withTelemetry("Feeder", MECHANISM_VERBOSITY);
+            .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, MECHANISM_VERBOSITY);
     private FlyWheel feeder = new FlyWheel(feederConfig, motor);
+    NetworkTable tuningTable = NetworkTableInstance.getDefault()
+            .getTable("Tuning")
+            .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
 
+    public Feeder() {
+        tuningTable.getEntry("voltage/enabled").setBoolean(false);
+        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
+    }
     private void updateInputs() {
         m_inputs.velocity = feeder.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.volts = feeder.getMotor().getVoltage();
         m_inputs.statorCurrent = feeder.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = feeder.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+                m_inputs.isTuning = SmartDashboard
+                .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
+        if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
+            feeder.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
+        }
     }
 
     /**
@@ -152,7 +165,7 @@ public class Feeder extends SubsystemBase {
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("Feeder", m_inputs);
+        Logger.processInputs(SUBSYSTEM_TELEMETRY_NAME, m_inputs);
         feeder.updateTelemetry();
     }
 

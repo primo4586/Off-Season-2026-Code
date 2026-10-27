@@ -48,6 +48,8 @@ public class FeederConstants {
         public static Current SUPPLY_LIMIT = Amps.of(30);
 
     //general
+        public static final String SUBSYSTEM_TELEMETRY_NAME = "Hood";
+        public static final String MOTOR_TELEMETRY_NAME = "HoodMotor";
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final TelemetryVerbosity MECHANISM_VERBOSITY = TelemetryVerbosity.HIGH;
 

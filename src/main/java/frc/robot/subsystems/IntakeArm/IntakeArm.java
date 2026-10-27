@@ -44,7 +44,17 @@ public class IntakeArm extends SubsystemBase {
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
-        public Pose3d componentPose = new Pose3d(); 
+        public boolean isTuning = false;
+        public Pose3d componentPose = new Pose3d();
+    }
+
+    NetworkTable tuningTable = NetworkTableInstance.getDefault()
+            .getTable("Tuning")
+            .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
+
+    public IntakeArm() {
+        tuningTable.getEntry("voltage/enabled").setBoolean(false);
+        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
     }
 
     private final IntakeArmInputsAutoLogged m_inputs = new IntakeArmInputsAutoLogged();
@@ -58,7 +68,7 @@ public class IntakeArm extends SubsystemBase {
             .withFeedforward(new ElevatorFeedforward(REAL_KS, 0, REAL_KV))
             .withSimFeedforward(new ElevatorFeedforward(SIM_KS, 0, SIM_KV))
             // Telemetry name and verbosity level
-            .withTelemetry("ArmMotor", MOTOR_TELEMATRY_MODE)
+            .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_TELEMETRY_MODE)
             // Gearing from the motor rotor to final shaft.
             // In this example GearBox.fromReductionStages(3,4) is the same as
             // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
@@ -70,7 +80,10 @@ public class IntakeArm extends SubsystemBase {
             .withIdleMode(MOTOR_MODE)
             .withStatorCurrentLimit(STATOR_CURRENT_LIMIT)
             .withSupplyCurrentLimit(SUPPLY_CURRENT_LIMIT)
-            .withStartingPosition(MIN_DISTANCE_MM);
+            .withStartingPosition(MIN_DISTANCE_MM)
+            .withTrapezoidalProfile(
+                    MAX_VELOCITY,
+                    MAX_ACCELERATION);
 
     private static TalonFX talonFX = new TalonFX(MOTOR_ID);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
@@ -79,7 +92,7 @@ public class IntakeArm extends SubsystemBase {
             .withCarriageWeight(CARRIAGE_WEIGHT)
             .withHorizontalElevator()
             .withAngle(Degrees.of(0))
-            .withTelemetry("intakeArm", ARM_TELEMETRY_MODE);
+            .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, ARM_TELEMETRY_MODE);
 
     // Arm Mechanism
     private Elevator arm = new Elevator(armCfg, motor);
@@ -92,12 +105,18 @@ public class IntakeArm extends SubsystemBase {
         m_inputs.volts = arm.getMotor().getVoltage();
         m_inputs.statorCurrent = arm.getMotor().getStatorCurrent();
         m_inputs.statorCurrent = arm.getMotor().getSupplyCurrent().orElse(Amps.of(0));
-        double totalExtensionMeters = (m_inputs.position / 1000.0); 
+        m_inputs.isTuning = SmartDashboard
+                .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
+        if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
+            arm.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
+        }
+
+        double totalExtensionMeters = (m_inputs.position / 1000.0);
         double deltaX = totalExtensionMeters * Math.cos(TRACK_ANGLE_DEGREES);
         double deltaZ = totalExtensionMeters * Math.sin(TRACK_ANGLE_DEGREES);
-                m_inputs.componentPose = new Pose3d(
-            new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
-            new Rotation3d()                        // No rotation
+        m_inputs.componentPose = new Pose3d(
+                new Translation3d(deltaX, 0.0, deltaZ), // Updates forward (X) and down (Z) simultaneously
+                new Rotation3d() // No rotation
         );
     }
 
@@ -186,7 +205,7 @@ public class IntakeArm extends SubsystemBase {
     @Override
     public void periodic() {
         updateInputs();
-        Logger.processInputs("IntakeArm", m_inputs);
+        Logger.processInputs(SUBSYSTEM_TELEMETRY_NAME, m_inputs);
         arm.updateTelemetry();
     }
 

@@ -41,7 +41,7 @@ public class HoodConstants {
         public static final double REAL_KV = 0.0;
 
         // SIM PID
-        public static final double SIM_KP = 10.0;
+        public static final double SIM_KP = 100.0;
         public static final double SIM_KI = 0.0;
         public static final double SIM_KD = 1.0;
         // SIM FEEDFOWARD
@@ -64,6 +64,8 @@ public class HoodConstants {
         public static Time CLOSED_LOOP_RAMP_RATE = Seconds.of(0.25);
         public static Time OPEN_LOOP_RAMP_RATE = Seconds.of(0.25);
     //general
+        public static final String SUBSYSTEM_TELEMETRY_NAME = "Hood";
+        public static final String MOTOR_TELEMETRY_NAME = "HoodMotor";
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final TelemetryVerbosity MECHANISM_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final Angle TOLERANCE = Degrees.of(0);

@@ -43,6 +43,7 @@ public class Shooter extends SubsystemBase {
         public Voltage volts = Volts.of(0);
         public Current statorcurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
+        public boolean isTuning = false;
     }
 
     private final ShooterInputsAutoLogged m_inputs = new ShooterInputsAutoLogged();
@@ -57,7 +58,7 @@ public class Shooter extends SubsystemBase {
             .withFeedforward(new SimpleMotorFeedforward(REAL_KS, REAL_KV, REAL_KA))
             .withSimFeedforward(new SimpleMotorFeedforward(SIM_KS, SIM_KV, SIM_KA))
             // Telemetry name and verbosity level
-            .withTelemetry("ShooterMotor", MOTOR_VERBOSITY)
+            .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_VERBOSITY)
             .withGearing(GEARING)
             .withMotorInverted(INVERTED)
             .withIdleMode(NEUTRAL_MODE)
@@ -69,8 +70,16 @@ public class Shooter extends SubsystemBase {
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(2), smcConfig);
     private final FlyWheelConfig shooterConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
-            .withTelemetry("Shooter", MECHANISM_VERBOSITY);
+            .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, MECHANISM_VERBOSITY);
     private FlyWheel shooter = new FlyWheel(shooterConfig, motor);
+    NetworkTable tuningTable = NetworkTableInstance.getDefault()
+            .getTable("Tuning")
+            .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
+
+    public Shooter() {
+        tuningTable.getEntry("voltage/enabled").setBoolean(false);
+        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
+    }
 
     private void updateInputs() {
         m_inputs.angularVelocity = shooter.getSpeed().in(RPM);
@@ -79,6 +88,11 @@ public class Shooter extends SubsystemBase {
         m_inputs.volts = shooter.getMotor().getVoltage();
         m_inputs.statorcurrent = shooter.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = shooter.getMotor().getSupplyCurrent().orElse(Amps.of(0));
+        m_inputs.isTuning = SmartDashboard
+                .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
+        if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
+            shooter.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
+        }
     }
 
     /**
@@ -199,7 +213,7 @@ public class Shooter extends SubsystemBase {
     public void periodic() {
         shooter.updateTelemetry();
         updateInputs();
-        Logger.processInputs("Shooter", m_inputs);
+        Logger.processInputs(SUBSYSTEM_TELEMETRY_NAME, m_inputs);
     }
 
     @Override

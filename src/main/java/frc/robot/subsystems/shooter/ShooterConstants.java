@@ -36,18 +36,20 @@ public class ShooterConstants {
         public static final double REAL_KA = 0;
 
         // SIM PID
-        public static final double SIM_KP = 4;
-        public static final double SIM_KI = 1;
-        public static final double SIM_KD = 0.03;
+        public static final double SIM_KP = 0.8;
+        public static final double SIM_KI = 0;
+        public static final double SIM_KD = 0;
         // SIM FEEDFOWARD
-        public static final double SIM_KS = 0.17;
-        public static final double SIM_KV = 0.16;
-        public static final double SIM_KA = 0.02;
+        public static final double SIM_KS = 0.;
+        public static final double SIM_KV = 0;
+        public static final double SIM_KA = 0;
     //limits
         public static Current STATOR_LIMIT = Amps.of(200);
         public static Current SUPPLY_LIMIT = Amps.of(200);
 
     //general
+        public static final String SUBSYSTEM_TELEMETRY_NAME = "Shooter";
+        public static final String MOTOR_TELEMETRY_NAME = "ShooterMotor";
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final TelemetryVerbosity MECHANISM_VERBOSITY = TelemetryVerbosity.HIGH;
 
