@@ -155,6 +155,7 @@ public class Robot extends LoggedRobot {
     // continue until interrupted by another command, remove
     // this line or comment it out.
     if (autonomousCommand != null) {
+      CommandScheduler.getInstance().schedule(m_robotContainer.closeIntake());
       autonomousCommand.cancel();
     }
   }
