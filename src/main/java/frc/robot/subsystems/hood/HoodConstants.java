@@ -32,7 +32,7 @@ public class HoodConstants {
         public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(2500);
 
         // REAL PID
-        public static final double REAL_KP = 1500.0; // TODO: tune
+        public static final double REAL_KP = 0.0; // TODO: tune NOTE: HOOD CURRENTLY DISABLED ENABLE FOR FIELD TEST
         public static final double REAL_KI = 0.0;
         public static final double REAL_KD = 0.0;
         // REAL FEEDFOWARD
