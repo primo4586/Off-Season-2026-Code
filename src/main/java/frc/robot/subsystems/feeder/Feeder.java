@@ -2,7 +2,8 @@ package frc.robot.subsystems.feeder;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.Constants;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.networktables.NetworkTable;
@@ -52,12 +53,13 @@ public class Feeder extends SubsystemBase {
             // Telemetry name and verbosity level
             .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_VERBOSITY)
             .withGearing(GEARING)
-            .withMotorInverted(INVERTED)
+            .withMotorInverted(INVERTED_MAIN)
             .withIdleMode(NEUTRAL_MODE)
             .withStatorCurrentLimit(STATOR_LIMIT)
-            .withSupplyCurrentLimit(SUPPLY_LIMIT);
-
-    private TalonFX talonFX = new TalonFX(MOTOR_ID);
+            .withSupplyCurrentLimit(SUPPLY_LIMIT)
+            .withFollowers(Pair.of(new TalonFX(MOTOR_ID_SHOOTER), INVERTED_SHOOTER));;
+            
+    private TalonFX talonFX = new TalonFX(MOTOR_ID_MAIN);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
     private final FlyWheelConfig feederConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
