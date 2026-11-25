@@ -62,6 +62,24 @@ public class CommandGroupFactory {
         this.driveYSupplier = driveYSupplier;
     }
 
+    
+
+
+    /**
+     *
+     * @return A command that opens the Intake if it is closed and then starts intaking
+     */
+    public Command autoIntake(){
+        return Commands.either(intakeRoller.intake(), intakeArm.OpenIntake(), intakeArm.isOpen()).repeatedly();
+    }
+
+
+
+
+
+
+
+
     /**
      * @return command that causes shooter and hood to interplate based on distance
      * 
@@ -229,5 +247,7 @@ public class CommandGroupFactory {
     public Command passOrShoot() {
         return Commands.either(pass(), shoot(), PrimoCalc.pastAlianceZone());
     }
+
+
 
 }

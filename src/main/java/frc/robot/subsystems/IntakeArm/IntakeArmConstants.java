@@ -69,7 +69,7 @@ public class IntakeArmConstants {
     public static final Distance MID_POINT = Millimeters.of(150);
     public static final Distance ARM_LENGTH = Meters.of(0.56);
     //TOLERANCE
-    public static final Distance ARM_TOLERANCE = Millimeters.of(1); //TODO: TUNE
+    public static final Distance ARM_TOLERANCE = Millimeters.of(10); //TODO: TUNE
     //Telematry
     public static final String SUBSYSTEM_TELEMETRY_NAME = "IntakeArm";
     public static final String MOTOR_TELEMETRY_NAME = "IntakeArmMotor";

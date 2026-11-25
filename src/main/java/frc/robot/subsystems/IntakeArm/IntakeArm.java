@@ -222,6 +222,6 @@ public class IntakeArm extends SubsystemBase {
      * @return is the intake currently open or opening?
      */
     public BooleanSupplier isOpen(){
-        return () -> Millimeters.of( m_inputs.setpoint) == MAX_DISTANCE_MM ||( Millimeters.of(m_inputs.position).gt(MAX_DISTANCE_MM.minus(ARM_TOLERANCE))) ;
+        return () ->  Millimeters.of(m_inputs.position).gt(MAX_DISTANCE_MM.minus(ARM_TOLERANCE));
     }
 }

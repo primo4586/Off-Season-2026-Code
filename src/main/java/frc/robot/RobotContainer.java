@@ -187,7 +187,7 @@ public class RobotContainer {
         m_driverController.rightTrigger().whileTrue(commandGroupFactory.passOrShoot());
         m_driverController.rightBumper().whileTrue(commandGroupFactory.closeShoot(RotationsPerSecond.of(57.75)));
         m_driverController.leftTrigger().whileTrue(commandGroupFactory.pass());
-        m_driverController.povRight().whileTrue(intakeRoller.intake());
+        m_driverController.povRight().whileTrue(commandGroupFactory.autoIntake());
         m_driverController.y().whileTrue(commandGroupFactory.safeOuttake());
         m_driverController.x().whileTrue(intakeArm.CloseIntake());
         m_driverController.b().onTrue(intakeArm.OpenIntake());
