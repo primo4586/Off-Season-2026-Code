@@ -143,7 +143,17 @@ public class CommandGroupFactory {
      */
     public Command pass() {
         return Commands.parallel(
-                prepareToShoot(false), // prepare to shoot without facing hub
+                Commands.sequence(
+                        Commands.race(
+                                Commands.waitUntil(() -> (PrimoCalc.isFacingDSWall().getAsBoolean())
+                                        && shooter.isReady().getAsBoolean()),
+                                Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
+                        feeder.feed()),
+                interplateHood(),
+                intakeArm.OpenAndCloseIntake(),
+                DriveCommands.joystickDriveAtAngle(
+                        drive, () -> driveXSupplier.getAsDouble(), () -> driveYSupplier.getAsDouble(),
+                        ()->PrimoCalc.getRotToDsWall()),
                 shooter.pass());
     }
 
@@ -211,6 +221,13 @@ public class CommandGroupFactory {
      */
     public Command safeOuttake() {
         return intakeRoller.outake().onlyIf(intakeArm.isOpen());
+    }
+
+    /**
+     * @return either pass or shoot depending on distance from ds wall
+     */
+    public Command passOrShoot() {
+        return Commands.either(pass(), shoot(), PrimoCalc.pastAlianceZone());
     }
 
 }

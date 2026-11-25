@@ -75,6 +75,13 @@ public class PrimoCalc {
     return () -> getDistanceFromDSWall().getAsDouble() > 8.5;
   }
 
+  /**
+   * @return is the robot past the alliancezone(5 meters)
+   */
+  public static BooleanSupplier pastAlianceZone() {
+    return () -> getDistanceFromDSWall().getAsDouble() > 5;
+  }
+
   // pass values
   public static DoubleSupplier shooterPassVel(double closerThanMidRPS, double furtherThanMidRPS) {
     return () -> pastMiddle().getAsBoolean() ? furtherThanMidRPS : closerThanMidRPS;
@@ -119,6 +126,13 @@ public class PrimoCalc {
     return () -> Math.abs(getRadsToHub() - drive.getRotation().getRadians()) < Constants.HUB_ANGLE_RADS_THRESHOLD;
   }
 
+  /**
+   * Checks if the robot is facing the hub within a certain threshold.
+   */
+  public static BooleanSupplier isFacingDSWall() {
+    return () -> Math.abs(getRotToDsWall().getRadians() - drive.getRotation().getRadians()) < Constants.HUB_ANGLE_RADS_THRESHOLD;
+  }
+
   public static double getDistance(Pose2d a, Pose3d b) {
     return a.getTranslation().getDistance(b.toPose2d().getTranslation());
   }
@@ -130,7 +144,8 @@ public class PrimoCalc {
   public static Supplier<AngularVelocity> interplateShooter() {
     return () -> RotationsPerSecond.of(interplateFromHub(InterpolationMaps.SHOOTER_INTERPOLATION_MAP));
   }
-  public static Supplier<Angle> interplateHood(){
+
+  public static Supplier<Angle> interplateHood() {
     return () -> Rotations.of(interplateFromHub(InterpolationMaps.HOOD_ANGLE_INTERPOLATION_MAP));
   }
 }

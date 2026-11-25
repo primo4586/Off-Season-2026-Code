@@ -182,7 +182,7 @@ public class RobotContainer {
      */
     private void configureBindings() {
 
-        m_driverController.rightTrigger().whileTrue(commandGroupFactory.shoot());
+        m_driverController.rightTrigger().whileTrue(commandGroupFactory.passOrShoot());
         m_driverController.rightBumper().whileTrue(commandGroupFactory.closeShoot(RotationsPerSecond.of(57.75)));
         m_driverController.leftTrigger().whileTrue(commandGroupFactory.pass());
         m_driverController.povRight().whileTrue(commandGroupFactory.safeIntake());
