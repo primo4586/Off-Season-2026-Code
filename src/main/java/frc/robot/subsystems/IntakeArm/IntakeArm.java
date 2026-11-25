@@ -3,6 +3,7 @@ package frc.robot.subsystems.IntakeArm;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Millimeter;
+import static edu.wpi.first.units.Units.Millimeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -29,6 +30,8 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 import static frc.robot.subsystems.IntakeArm.IntakeArmConstants.*;
+
+import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -214,4 +217,10 @@ public class IntakeArm extends SubsystemBase {
         arm.simIterate();
     }
 
+    /**
+     * @return is the intake currently open or opening?
+     */
+    public BooleanSupplier isOpen(){
+        return () -> Millimeters.of( m_inputs.setpoint) == MAX_DISTANCE_MM ||( Millimeters.of(m_inputs.position).gt(MAX_DISTANCE_MM.minus(ARM_TOLERANCE))) ;
+    }
 }

@@ -64,7 +64,7 @@ public class CommandGroupFactory {
 
     /**
      * @return command that causes shooter and hood to interplate based on distance
-     *         
+     * 
      *         from hub
      */
     public Command interplateShooter() {
@@ -108,7 +108,7 @@ public class CommandGroupFactory {
     public Command shoot() {
         return Commands.parallel(
                 prepareToShoot(true),
-              interplateShooter());
+                interplateShooter());
     }
 
     /**
@@ -197,6 +197,20 @@ public class CommandGroupFactory {
      */
     public Command addDefualtCommandsCommand() {
         return Commands.runOnce(this::addDefualtCommands);
+    }
+
+    /**
+     * @return a command that will only intake if the intake is open
+     */
+    public Command safeIntake() {
+        return intakeRoller.intake().onlyIf(intakeArm.isOpen());
+    }
+
+    /**
+     * @return a command that will only outtake if the intake is open
+     */
+    public Command safeOuttake() {
+        return intakeRoller.outake().onlyIf(intakeArm.isOpen());
     }
 
 }

@@ -185,12 +185,12 @@ public class RobotContainer {
         m_driverController.rightTrigger().whileTrue(commandGroupFactory.shoot());
         m_driverController.rightBumper().whileTrue(commandGroupFactory.closeShoot(RotationsPerSecond.of(57.75)));
         m_driverController.leftTrigger().whileTrue(commandGroupFactory.pass());
-        m_driverController.povRight().whileTrue(intakeRoller.intake());
-        m_driverController.y().whileTrue(intakeRoller.outake());
+        m_driverController.povRight().whileTrue(commandGroupFactory.safeIntake());
+        m_driverController.y().whileTrue(commandGroupFactory.safeOuttake());
         m_driverController.x().whileTrue(intakeArm.CloseIntake());
         m_driverController.b().onTrue(intakeArm.OpenIntake());
         m_driverController.a().whileTrue(hood.resetHood());
-        m_driverController.povLeft().whileTrue(feeder.unfeed());
+        m_driverController.povLeft().whileTrue(feeder.feed());
         // normal movment
         drive.setDefaultCommand(
                 DriveCommands.joystickDrive(
