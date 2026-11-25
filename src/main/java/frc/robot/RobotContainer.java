@@ -18,11 +18,13 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -131,7 +133,7 @@ public class RobotContainer {
         // setup defualt commands and commandgroupfactory
         feeder.setDefaultCommand(feeder.set(0));
         hood.setDefaultCommand(hood.set(0));
-        shooter.setDefaultCommand(shooter.run(REST_SPEED));
+        shooter.setDefaultCommand(shooter.run(RPM.of(0)));
         intakeRoller.setDefaultCommand(intakeRoller.set(0));
         commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter,
                 () -> -m_driverController.getLeftY(), () -> -m_driverController.getLeftX());
@@ -185,7 +187,7 @@ public class RobotContainer {
         m_driverController.rightTrigger().whileTrue(commandGroupFactory.passOrShoot());
         m_driverController.rightBumper().whileTrue(commandGroupFactory.closeShoot(RotationsPerSecond.of(57.75)));
         m_driverController.leftTrigger().whileTrue(commandGroupFactory.pass());
-        m_driverController.povRight().whileTrue(commandGroupFactory.safeIntake());
+        m_driverController.povRight().whileTrue(intakeRoller.intake());
         m_driverController.y().whileTrue(commandGroupFactory.safeOuttake());
         m_driverController.x().whileTrue(intakeArm.CloseIntake());
         m_driverController.b().onTrue(intakeArm.OpenIntake());
@@ -249,5 +251,6 @@ public class RobotContainer {
         return intakeArm.CloseIntake();
     }
     public void periodic() {
+        Logger.recordOutput("test/distancefromwall", PrimoCalc.getDistanceFromDSWall());
     }
 }

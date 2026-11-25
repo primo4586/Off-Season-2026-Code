@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Elevator;
@@ -88,7 +89,7 @@ public class IntakeArm extends SubsystemBase {
                     MAX_VELOCITY,
                     MAX_ACCELERATION);
 
-    private static TalonFX talonFX = new TalonFX(MOTOR_ID);
+    private static TalonFX talonFX = new TalonFX(MOTOR_ID,Constants.CAN_BUS_NAME);
     private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
     private ElevatorConfig armCfg = new ElevatorConfig()
             .withHardLimits(MIN_DISTANCE_MM, MAX_DISTANCE_MM)

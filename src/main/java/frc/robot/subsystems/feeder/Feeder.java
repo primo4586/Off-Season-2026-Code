@@ -27,13 +27,14 @@ import static frc.robot.subsystems.feeder.FeederConstants.*;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Feeder extends SubsystemBase {
     @AutoLog
     public static class FeederInputs {
 
-        public double velocity = 0.0; //RPM
+        public double velocity = 0.0; // RPM
         public Voltage volts = Volts.of(0);
         public Current statorCurrent = Amps.of(0);
         public Current supplyCurrent = Amps.of(0);
@@ -58,9 +59,9 @@ public class Feeder extends SubsystemBase {
             .withStatorCurrentLimit(STATOR_LIMIT)
             .withSupplyCurrentLimit(SUPPLY_LIMIT)
             .withFollowers(Pair.of(new TalonFX(MOTOR_ID_SHOOTER), INVERTED_SHOOTER));;
-            
-    private TalonFX talonFX = new TalonFX(MOTOR_ID_MAIN);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
+
+    private TalonFX talonFX = new TalonFX(MOTOR_ID_MAIN, Constants.CAN_BUS_NAME);
+    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(2), smcConfig);
     private final FlyWheelConfig feederConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
             .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, MECHANISM_VERBOSITY);
@@ -70,15 +71,15 @@ public class Feeder extends SubsystemBase {
             .getSubTable(SUBSYSTEM_TELEMETRY_NAME).getSubTable(MOTOR_TELEMETRY_NAME);
 
     public Feeder() {
-        tuningTable.getEntry("voltage/enabled").setBoolean(false);
-        tuningTable.getEntry("voltage/setpoint").setDouble(0.0);
+        
     }
+
     private void updateInputs() {
         m_inputs.velocity = feeder.getMotor().getMechanismVelocity().in(RPM);
         m_inputs.volts = feeder.getMotor().getVoltage();
         m_inputs.statorCurrent = feeder.getMotor().getStatorCurrent();
         m_inputs.supplyCurrent = feeder.getMotor().getSupplyCurrent().orElse(Amps.of(0));
-                m_inputs.isTuning = SmartDashboard
+        m_inputs.isTuning = SmartDashboard
                 .getBoolean("Mechanisms/Commands/" + SUBSYSTEM_TELEMETRY_NAME + "/Live Tuning/running", false);
         if (tuningTable.getEntry("voltage/enabled").getBoolean(false) && m_inputs.isTuning) {
             feeder.setVoltageSetpoint(Volts.of(tuningTable.getEntry("voltage/setpoint").getDouble(0)));
