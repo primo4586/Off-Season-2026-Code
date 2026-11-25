@@ -9,7 +9,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.primoLib.PrimoCalc;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.hood.Hood;
-
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.IntakeArm.IntakeArm;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
@@ -20,6 +20,7 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.shooter.ShooterConstants.REST_SPEED;
 
 import java.util.function.DoubleSupplier;
@@ -60,6 +61,7 @@ import frc.robot.commands.DriveCommands;
 public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     private final Feeder feeder = new Feeder();
+    private final Indexer indexer = new Indexer();
     private final Hood hood = new Hood();
     private final IntakeArm intakeArm = new IntakeArm();
     private final Shooter shooter = new Shooter();
@@ -135,7 +137,8 @@ public class RobotContainer {
         hood.setDefaultCommand(hood.set(0));
         shooter.setDefaultCommand(shooter.run(RPM.of(0)));
         intakeRoller.setDefaultCommand(intakeRoller.set(0));
-        commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter,
+        indexer.setDefaultCommand(indexer.set(0));
+        commandGroupFactory = new CommandGroupFactory(drive, feeder, hood, intakeArm, intakeRoller, shooter,indexer,
                 () -> -m_driverController.getLeftY(), () -> -m_driverController.getLeftX());
         // setup defualtcommands
         // named commands
@@ -192,7 +195,7 @@ public class RobotContainer {
         m_driverController.x().whileTrue(intakeArm.CloseIntake());
         m_driverController.b().onTrue(intakeArm.OpenIntake());
         m_driverController.a().whileTrue(hood.resetHood());
-        m_driverController.povLeft().whileTrue(feeder.feed());
+        m_driverController.povLeft().whileTrue(commandGroupFactory.indexAndFeed());
         // normal movment
         drive.setDefaultCommand(
                 DriveCommands.joystickDrive(

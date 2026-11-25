@@ -1,6 +1,7 @@
 package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Millimeter;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -15,13 +16,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 //TODO: recalibrate based on new feeder when new feeder avaiable
 public class FeederConstants {
     //phisycal info
-        public static final int MOTOR_ID_MAIN = 22;
-        public static final int MOTOR_ID_SHOOTER = 23;
+        public static final int MOTOR_ID = 22;
         public static final double GEARING = 9;
-        public static final boolean INVERTED_MAIN = true;
-        public static final boolean INVERTED_SHOOTER = true;
+        public static final boolean INVERTED = true;
         public static final MotorMode NEUTRAL_MODE = MotorMode.BRAKE;
-        public static final Distance FEEDER_CIRCUMFRANCE = Millimeter.of(40);
+        public static final Distance CIRCUMFRANCE = Inch.of(6.28319);
     //control loop
         public static final ControlMode CONTROL_MODE = ControlMode.CLOSED_LOOP;
         public static final AngularVelocity FEED_SPEED = RPM.of(720);
@@ -50,8 +49,8 @@ public class FeederConstants {
         public static Current SUPPLY_LIMIT = Amps.of(30);
 
     //general
-        public static final String SUBSYSTEM_TELEMETRY_NAME = "Hood";
-        public static final String MOTOR_TELEMETRY_NAME = "HoodMotor";
+        public static final String SUBSYSTEM_TELEMETRY_NAME = "Feeder";
+        public static final String MOTOR_TELEMETRY_NAME = "FeederMotor";
         public static final TelemetryVerbosity MOTOR_VERBOSITY = TelemetryVerbosity.HIGH;
         public static final TelemetryVerbosity MECHANISM_VERBOSITY = TelemetryVerbosity.HIGH;
 

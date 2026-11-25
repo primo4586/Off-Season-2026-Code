@@ -15,6 +15,7 @@ import frc.robot.subsystems.IntakeRoller.IntakeRoller;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.shooter.Shooter;
 
 public class CommandGroupFactory {
@@ -24,6 +25,7 @@ public class CommandGroupFactory {
     private final IntakeArm intakeArm;
     private final IntakeRoller intakeRoller;
     private final Shooter shooter;
+    private final Indexer indexer;
 
     private final Command feederDefaultCommand;
     private final Command hoodDefaultCommand;
@@ -45,13 +47,14 @@ public class CommandGroupFactory {
      * @param shooter
      */
     public CommandGroupFactory(Drive drive, Feeder feeder, Hood hood, IntakeArm intakeArm, IntakeRoller intakeRoller,
-            Shooter shooter, DoubleSupplier driveXSupplier, DoubleSupplier driveYSupplier) {
+            Shooter shooter, Indexer indexer, DoubleSupplier driveXSupplier, DoubleSupplier driveYSupplier) {
         this.drive = drive;
         this.feeder = feeder;
         this.hood = hood;
         this.intakeArm = intakeArm;
         this.intakeRoller = intakeRoller;
         this.shooter = shooter;
+        this.indexer = indexer;
         feederDefaultCommand = feeder.getDefaultCommand();
         hoodDefaultCommand = hood.getDefaultCommand();
         intakeArmDefaultCommand = intakeArm.getDefaultCommand();
@@ -78,6 +81,18 @@ public class CommandGroupFactory {
 
 
 
+
+
+    public Command indexAndFeed() {
+        return Commands.parallel(
+                feeder.feed(),
+                indexer.feed());
+    }
+        public Command unIndexAndUnFeed() {
+        return Commands.parallel(
+                feeder.unfeed(),
+                indexer.unfeed());
+    }
 
 
     /**
@@ -109,7 +124,7 @@ public class CommandGroupFactory {
                                 Commands.waitUntil(() -> (PrimoCalc.isFacingHub().getAsBoolean() || !facehub)
                                         && shooter.isReady().getAsBoolean()),
                                 Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
-                        feeder.feed()),
+                        indexAndFeed()),
                 interplateHood(),
                 intakeArm.OpenAndCloseIntake(), // push fuels into feeder
                 DriveCommands.joystickDriveAtAngle(
@@ -148,7 +163,7 @@ public class CommandGroupFactory {
      */
     public Command shootInstantly() {
         return Commands.parallel(
-                feeder.feed(),
+                indexAndFeed(),
                 intakeArm.OpenAndCloseIntake(), // push balls into feeder
                 interplateHood(),
                 interplateShooter());
@@ -166,7 +181,7 @@ public class CommandGroupFactory {
                                 Commands.waitUntil(() -> (PrimoCalc.isFacingDSWall().getAsBoolean())
                                         && shooter.isReady().getAsBoolean()),
                                 Commands.waitTime(Constants.MAXIMUM_SHOOT_WAIT_TIME)),
-                        feeder.feed()),
+                        indexAndFeed()),
                 interplateHood(),
                 intakeArm.OpenAndCloseIntake(),
                 DriveCommands.joystickDriveAtAngle(

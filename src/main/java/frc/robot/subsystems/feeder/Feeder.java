@@ -43,7 +43,7 @@ public class Feeder extends SubsystemBase {
 
     private final FeederInputsAutoLogged m_inputs = new FeederInputsAutoLogged();
     private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-            .withMechanismCircumference(FEEDER_CIRCUMFRANCE)
+            .withMechanismCircumference(CIRCUMFRANCE)
             .withControlMode(CONTROL_MODE)
             // Feedback Constants (PID Constants)
             .withClosedLoopController(REAL_KP, REAL_KI, REAL_KD)
@@ -54,14 +54,13 @@ public class Feeder extends SubsystemBase {
             // Telemetry name and verbosity level
             .withTelemetry(MOTOR_TELEMETRY_NAME, MOTOR_VERBOSITY)
             .withGearing(GEARING)
-            .withMotorInverted(INVERTED_MAIN)
+            .withMotorInverted(INVERTED)
             .withIdleMode(NEUTRAL_MODE)
             .withStatorCurrentLimit(STATOR_LIMIT)
-            .withSupplyCurrentLimit(SUPPLY_LIMIT)
-            .withFollowers(Pair.of(new TalonFX(MOTOR_ID_SHOOTER), INVERTED_SHOOTER));;
+            .withSupplyCurrentLimit(SUPPLY_LIMIT);
 
-    private TalonFX talonFX = new TalonFX(MOTOR_ID_MAIN, Constants.CAN_BUS_NAME);
-    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(2), smcConfig);
+    private TalonFX talonFX = new TalonFX(MOTOR_ID, Constants.CAN_BUS_NAME);
+    private SmartMotorController motor = new TalonFXWrapper(talonFX, DCMotor.getFalcon500(1), smcConfig);
     private final FlyWheelConfig feederConfig = new FlyWheelConfig()
             .withDiameter(Inches.of(2))
             .withTelemetry(SUBSYSTEM_TELEMETRY_NAME, MECHANISM_VERBOSITY);
@@ -87,9 +86,9 @@ public class Feeder extends SubsystemBase {
     }
 
     /**
-     * Gets the current velocity of the shooter.
+     * Gets the current velocity of the feeder.
      *
-     * @return Shooter velocity.
+     * @return Feeder velocity.
      */
     public AngularVelocity getVelocity() {
         return RPM.of(m_inputs.velocity);
