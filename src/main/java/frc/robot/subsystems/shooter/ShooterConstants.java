@@ -16,7 +16,7 @@ public class ShooterConstants {
         public static final int FOLLOWER_ID = 31; // id for follower motor; note: motor must be on canivore bus
         public static final double GEARING = 27/20;
         public static final boolean INVERTED = true;
-        public static final boolean FOLLOWER_INVERTED = false;
+        public static final boolean FOLLOWER_INVERTED = true; // not the inverison of the motor, wether the motor is inverted from main
         public static final MotorMode NEUTRAL_MODE = MotorMode.COAST;
         public static final Distance WHEEL_CIRCUMFERENCE = Inch.of(4);
     //control loop
